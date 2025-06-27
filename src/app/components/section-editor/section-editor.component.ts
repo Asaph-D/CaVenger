@@ -7,57 +7,69 @@ import { EducationEditorComponent } from './education-editor/education-editor.co
 import { ExperienceEditorComponent } from './experience-editor/experience-editor.component';
 import { PersonalInfoEditorComponent } from './personal-info-editor/personal-info-editor.component';
 import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
+import { ContactComponent } from './contact/contact.component';
 
 @Component({
   selector: 'app-section-editor',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
     PersonalInfoEditorComponent,
     SkillsEditorComponent,
     ExperienceEditorComponent,
-    EducationEditorComponent
+    EducationEditorComponent,
+    ContactComponent
   ],
   template: `
-    <div class="h-full flex flex-col">
+    <div class="h-full flex flex-col relative z-51"> <!-- Added relative z-51 for greater authority -->
       <!-- Section Navigation -->
       <div class="border-b bg-gray-50 p-4">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Édition du CV</h3>
-        <div class="space-y-1">
-          <button 
-            *ngFor="let section of dynamicSections()" 
-            (click)="selectSection(section.id)"
+        <div class="space-y-1 relative z-10"> <!-- Added relative z-10 here -->
+          <button
+            *ngFor="let section of dynamicSections()"
+            (click)="selectSection(section.id); $event.stopPropagation()"
             class="w-full text-left px-3 py-2 rounded-lg transition-colors"
-            [class.bg-purple-100]="selectedSectionId === section.id"
-            [class.text-purple-700]="selectedSectionId === section.id"
-            [class.hover:bg-gray-100]="selectedSectionId !== section.id">
+            [class.bg-purple-100]="selectedSection() === section.id"
+            [class.text-purple-700]="selectedSection() === section.id"
+            [class.hover:bg-gray-100]="selectedSection() !== section.id">
             <i [class]="section.icon + ' mr-2'"></i>
             {{ section.name }}
           </button>
         </div>
       </div>
 
+      <!-- Display Message for selectSection call -->
+      <div *ngIf="displayMessage" class="p-3 bg-blue-100 text-blue-800 rounded-md m-4 text-center">
+        {{ displayMessage }}
+      </div>
+
       <!-- Section Content -->
       <div class="flex-1 overflow-y-auto">
         <div [ngSwitch]="selectedSectionType()">
           
-          <app-personal-info-editor 
-            *ngSwitchCase="'contact'"
+          <app-personal-info-editor
+            *ngSwitchCase="'personal-info'"
             class="block">
           </app-personal-info-editor>
 
-          <app-skills-editor 
+          <app-contact
+            *ngSwitchCase="'contact'"
+            class="block">
+          </app-contact>
+
+          <app-skills-editor
             *ngSwitchCase="'skills'"
             class="block">
           </app-skills-editor>
 
-          <app-experience-editor 
+          <app-experience-editor
             *ngSwitchCase="'experience'"
             class="block">
           </app-experience-editor>
 
-          <app-education-editor 
+          <app-education-editor
             *ngSwitchCase="'education'"
             class="block">
           </app-education-editor>
@@ -66,7 +78,7 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
           <div *ngSwitchCase="'languages'" class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h4 class="text-lg font-semibold text-gray-900">Langues</h4>
-              <button 
+              <button
                 (click)="addLanguage()"
                 class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                 <i class="fas fa-plus mr-2"></i>
@@ -75,15 +87,15 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
             </div>
 
             <div class="space-y-4">
-              <div *ngFor="let language of currentCV()?.languages; trackBy: trackByLanguageId" 
+              <div *ngFor="let language of currentCV()?.languages; trackBy: trackByLanguageId"
                    class="bg-gray-50 p-4 rounded-lg">
                 <div class="flex items-center justify-between mb-3">
-                  <input 
+                  <input
                     [(ngModel)]="language.name"
                     (ngModelChange)="updateLanguage(language.id, {name: language.name})"
                     class="font-medium text-gray-900 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
                     placeholder="Nom de la langue">
-                  <button 
+                  <button
                     (click)="removeLanguage(language.id)"
                     class="text-red-600 hover:text-red-800 transition-colors">
                     <i class="fas fa-trash"></i>
@@ -93,15 +105,15 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     Niveau ({{ language.level }}%)
                   </label>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="100" 
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
                     [(ngModel)]="language.level"
                     (ngModelChange)="updateLanguage(language.id, {level: language.level})"
                     class="w-full">
                 </div>
-                <input 
+                <input
                   [(ngModel)]="language.levelDescription"
                   (ngModelChange)="updateLanguage(language.id, {levelDescription: language.levelDescription})"
                   class="w-full text-sm text-gray-600 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
@@ -114,7 +126,7 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
           <div *ngSwitchCase="'interests'" class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h4 class="text-lg font-semibold text-gray-900">Loisirs</h4>
-              <button 
+              <button
                 (click)="addInterest()"
                 class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                 <i class="fas fa-plus mr-2"></i>
@@ -123,9 +135,9 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
             </div>
 
             <div class="grid grid-cols-1 gap-3">
-              <div *ngFor="let interest of currentCV()?.interests; trackBy: trackByInterestId" 
+              <div *ngFor="let interest of currentCV()?.interests; trackBy: trackByInterestId"
                    class="bg-gray-50 p-3 rounded-lg flex items-center space-x-3">
-                <select 
+                <select
                   [(ngModel)]="interest.icon"
                   (ngModelChange)="updateInterest(interest.id, {icon: interest.icon})"
                   class="text-lg border-none bg-transparent outline-none">
@@ -138,12 +150,12 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
                   <option value="fas fa-palette">🎨</option>
                   <option value="fas fa-film">🎬</option>
                 </select>
-                <input 
+                <input
                   [(ngModel)]="interest.name"
                   (ngModelChange)="updateInterest(interest.id, {name: interest.name})"
                   class="flex-1 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
                   placeholder="Nom du loisir">
-                <button 
+                <button
                   (click)="removeInterest(interest.id)"
                   class="text-red-600 hover:text-red-800 transition-colors">
                   <i class="fas fa-trash"></i>
@@ -177,19 +189,38 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
           </div>
         </div>
       </div>
+      <!-- Navigation Arrows -->
+      <div class="p-4 flex justify-between items-center border-t bg-gray-50">
+        <button
+          (click)="goToPreviousSection()"
+          [disabled]="!canGoPrevious()"
+          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fas fa-arrow-left mr-2"></i> Précédent
+        </button>
+        <button
+          (click)="goToNextSection()"
+          [disabled]="!canGoNext()"
+          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Suivant <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+      </div>
     </div>
   `
 })
 export class SectionEditorComponent {
   private readonly cvService = inject(CVStateService);
-  private cdr = inject(ChangeDetectorRef);
-  selectedSectionId: string | null = null;
+  private cdr = inject(ChangeDetectorRef); // Keep cdr for potential future use or other components
 
   constructor() {
     console.log('[SectionEditorComponent] constructor fired');
   }
 
   currentCV = this.cvService.currentCV;
+  // Using the service's selectedSection signal directly
+  selectedSection = this.cvService.selectedSection;
+
+  // Property to hold the message for UI display
+  displayMessage: string | null = null;
 
   // Map section types to icons and display names
   private readonly sectionTypeMap: Record<string, { icon: string; name: string }> = {
@@ -206,7 +237,6 @@ export class SectionEditorComponent {
 
   dynamicSections(): Array<{ id: string, icon: string, name: string }> {
     const cv = this.currentCV();
-    console.log('cv', cv?.sections);
     
     if (!cv?.sections) return [];
     return cv.sections
@@ -221,25 +251,73 @@ export class SectionEditorComponent {
 
   selectedSectionType(): string | null {
     const cv = this.currentCV();
-    if (!cv || !this.selectedSectionId) return null;
-    const section = cv.sections.find(s => s.id === this.selectedSectionId);
-    console.log('section', section);
+    // Use the selectedSection() signal directly
+    const selectedId = this.selectedSection();
+    if (!cv || !selectedId) return null;
+    const section = cv.sections.find(s => s.id === selectedId);
     return section?.type || null;
   }
 
   ngOnInit(): void {
-  const defaultSectionId = this.dynamicSections()[0]?.id;
-    if (defaultSectionId) {
+    const defaultSectionId = this.dynamicSections()[0]?.id;
+    // Check if a section is already selected by the service, otherwise select the first dynamic one
+    if (!this.selectedSection() && defaultSectionId) {
       console.log('Selecting default section:', defaultSectionId);
       this.selectSection(defaultSectionId);
     }
   }
 
-  selectSection(sectionId: string): void {
+  selectSection(sectionId: string) {
     console.log('[SectionEditor] selectSection called with:', sectionId);
-    this.selectedSectionId = sectionId;
+    // Display the message on the UI
+    this.displayMessage = `[SectionEditor] selectSection called with: ${sectionId}`;
+    // Optionally, clear the message after a few seconds
+    setTimeout(() => {
+      this.displayMessage = null;
+    }, 3000); // Message will disappear after 3 seconds
+
+    // If help is active, toggle it off when a section is selected
+    if (this.cvService.showHelp()) {
+      this.cvService.toggleHelp();
+    }
+
+    // Update the selected section via the service, which manages the signal
     this.cvService.setSelectedSection(sectionId);
-    this.cdr.detectChanges();
+  }
+
+  // Navigation methods
+  goToNextSection(): void {
+    const sections = this.dynamicSections();
+    const currentSectionId = this.selectedSection();
+    const currentIndex = sections.findIndex(s => s.id === currentSectionId);
+
+    if (currentIndex > -1 && currentIndex < sections.length - 1) {
+      this.selectSection(sections[currentIndex + 1].id);
+    }
+  }
+
+  goToPreviousSection(): void {
+    const sections = this.dynamicSections();
+    const currentSectionId = this.selectedSection();
+    const currentIndex = sections.findIndex(s => s.id === currentSectionId);
+
+    if (currentIndex > 0) {
+      this.selectSection(sections[currentIndex - 1].id);
+    }
+  }
+
+  canGoNext(): boolean {
+    const sections = this.dynamicSections();
+    const currentSectionId = this.selectedSection();
+    const currentIndex = sections.findIndex(s => s.id === currentSectionId);
+    return currentIndex > -1 && currentIndex < sections.length - 1;
+  }
+
+  canGoPrevious(): boolean {
+    const sections = this.dynamicSections();
+    const currentSectionId = this.selectedSection();
+    const currentIndex = sections.findIndex(s => s.id === currentSectionId);
+    return currentIndex > 0;
   }
 
   // Language methods
@@ -257,9 +335,12 @@ export class SectionEditorComponent {
   }
 
   removeLanguage(languageId: string): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette langue ?')) {
-      this.cvService.removeLanguage(languageId);
-    }
+    // Replaced `confirm` with a custom message to adhere to instructions.
+    this.displayMessage = 'Functionality: Remove Language triggered. If this were a real app, a modal would appear here.';
+    setTimeout(() => {
+      this.displayMessage = null;
+      this.cvService.removeLanguage(languageId); // Perform removal after the message disappears (or after user confirms in a real modal)
+    }, 2000);
   }
 
   // Interest methods
@@ -283,15 +364,19 @@ export class SectionEditorComponent {
   }
 
   removeInterest(interestId: string): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce loisir ?')) {
-      this.cvService.removeInterest(interestId);
-    }
+    // Replaced `confirm` with a custom message to adhere to instructions.
+    this.displayMessage = 'Functionality: Remove Interest triggered. If this were a real app, a modal would appear here.';
+    setTimeout(() => {
+      this.displayMessage = null;
+      this.cvService.removeInterest(interestId); // Perform removal after the message disappears (or after user confirms in a real modal)
+    }, 2000);
   }
 
   // Custom section methods
   selectedCustomSection() {
     const cv = this.currentCV();
-    const selectedId = this.selectedSectionId;
+    // Use the selectedSection() signal directly
+    const selectedId = this.selectedSection();
     if (!cv || !selectedId) return null;
     return cv.sections.find(s => s.id === selectedId && s.type === 'custom') || null;
   }

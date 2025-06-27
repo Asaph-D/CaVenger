@@ -3,8 +3,8 @@ import { Component, HostListener, inject, OnInit, ViewChild } from '@angular/cor
 import { Router } from '@angular/router';
 import { CVStateService } from '../../services/cv-state.service';
 import { CVPreviewComponent } from '../cv-preview/cv-preview.component';
-import { StyleEditorComponent } from '../style-editor/style-editor.component';
 import { SectionEditorComponent } from '../section-editor/section-editor.component';
+import { StyleEditorComponent } from '../style-editor/style-editor.component';
 
 @Component({
   selector: 'app-cv-builder',
@@ -16,7 +16,7 @@ import { SectionEditorComponent } from '../section-editor/section-editor.compone
     SectionEditorComponent
   ],
   template: `
-    <div class="min-h-screen bg-gray-50 -mt-16">
+    <div class="relative z-1 min-h-screen bg-gray-50 -mt-16">
       <!-- Header -->
       <header class="bg-white shadow-sm border-b sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
