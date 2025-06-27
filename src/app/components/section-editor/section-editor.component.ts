@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CVSection } from '../../models/cv.interface';
 import { CVStateService } from '../../services/cv-state.service';
@@ -26,12 +26,12 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Édition du CV</h3>
         <div class="space-y-1">
           <button 
-            *ngFor="let section of dynamicSections" 
+            *ngFor="let section of dynamicSections()" 
             (click)="selectSection(section.id)"
             class="w-full text-left px-3 py-2 rounded-lg transition-colors"
-            [class.bg-purple-100]="selectedSection === section.id"
-            [class.text-purple-700]="selectedSection === section.id"
-            [class.hover:bg-gray-100]="selectedSection !== section.id">
+            [class.bg-purple-100]="selectedSectionId === section.id"
+            [class.text-purple-700]="selectedSectionId === section.id"
+            [class.hover:bg-gray-100]="selectedSectionId !== section.id">
             <i [class]="section.icon + ' mr-2'"></i>
             {{ section.name }}
           </button>
@@ -40,10 +40,10 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
 
       <!-- Section Content -->
       <div class="flex-1 overflow-y-auto">
-        <div [ngSwitch]="selectedSection">
+        <div [ngSwitch]="selectedSectionType()">
           
           <app-personal-info-editor 
-            *ngSwitchCase="'personal-info'"
+            *ngSwitchCase="'contact'"
             class="block">
           </app-personal-info-editor>
 
@@ -155,7 +155,7 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
           <!-- Custom Section Editor -->
           <div *ngSwitchCase="'custom'" class="p-6">
             <h4 class="text-lg font-semibold text-gray-900 mb-4">Section personnalisée</h4>
-            <ng-container *ngIf="selectedCustomSection as customSection">
+            <ng-container *ngIf="selectedCustomSection() as customSection">
               <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
               <input [(ngModel)]="customSection.title"
                      (ngModelChange)="updateCustomSection(customSection.id, { title: customSection.title })"
@@ -182,16 +182,14 @@ import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
 })
 export class SectionEditorComponent {
   private readonly cvService = inject(CVStateService);
+  private cdr = inject(ChangeDetectorRef);
+  selectedSectionId: string | null = null;
 
   constructor() {
     console.log('[SectionEditorComponent] constructor fired');
   }
 
   currentCV = this.cvService.currentCV;
-  // Restore selectedSection as a getter for correct switch behavior
-  get selectedSection() {
-    return this.cvService.selectedSection();
-  }
 
   // Map section types to icons and display names
   private readonly sectionTypeMap: Record<string, { icon: string; name: string }> = {
@@ -206,11 +204,12 @@ export class SectionEditorComponent {
     'custom': { icon: 'fas fa-puzzle-piece', name: 'Section personnalisée' }
   };
 
-  get dynamicSections() {
+  dynamicSections(): Array<{ id: string, icon: string, name: string }> {
     const cv = this.currentCV();
+    console.log('cv', cv?.sections);
+    
     if (!cv?.sections) return [];
-    // Only show visible sections, sorted by order
-    return cv?.sections
+    return cv.sections
       .filter(section => section.visible)
       .sort((a, b) => a.order - b.order)
       .map(section => ({
@@ -220,21 +219,27 @@ export class SectionEditorComponent {
       }));
   }
 
-  ngOnInit(): void {
-      console.log('selected', this.dynamicSections[0].id);
+  selectedSectionType(): string | null {
+    const cv = this.currentCV();
+    if (!cv || !this.selectedSectionId) return null;
+    const section = cv.sections.find(s => s.id === this.selectedSectionId);
+    console.log('section', section);
+    return section?.type || null;
+  }
 
-    // Select first section by default
-    if (!this.selectedSection && this.dynamicSections.length > 0) {
-      console.log('selected', this.dynamicSections[0].id);
-      
-      this.selectSection(this.dynamicSections[0].id);
+  ngOnInit(): void {
+  const defaultSectionId = this.dynamicSections()[0]?.id;
+    if (defaultSectionId) {
+      console.log('Selecting default section:', defaultSectionId);
+      this.selectSection(defaultSectionId);
     }
   }
 
   selectSection(sectionId: string): void {
     console.log('[SectionEditor] selectSection called with:', sectionId);
+    this.selectedSectionId = sectionId;
     this.cvService.setSelectedSection(sectionId);
-    console.log('[SectionEditor] selectedSection after set:', this.selectedSection);
+    this.cdr.detectChanges();
   }
 
   // Language methods
@@ -284,9 +289,9 @@ export class SectionEditorComponent {
   }
 
   // Custom section methods
-  get selectedCustomSection() {
+  selectedCustomSection() {
     const cv = this.currentCV();
-    const selectedId = this.selectedSection;
+    const selectedId = this.selectedSectionId;
     if (!cv || !selectedId) return null;
     return cv.sections.find(s => s.id === selectedId && s.type === 'custom') || null;
   }

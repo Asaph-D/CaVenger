@@ -309,7 +309,7 @@ export class CVBuilderComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.floating-action-buttons') && !target.closest('.add-section-menu')) {
+    if (!target.closest('.floating-action-buttons') && !target.closest('.add-section-menu')&& !target.closest('app-section-editor')) {
       this.showAddSectionMenu = false;
     }
   }
