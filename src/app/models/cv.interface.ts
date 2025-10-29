@@ -2,9 +2,6 @@ export interface PersonalInfo {
   firstName: string;
   lastName: string;
   title: string;
-  email: string;
-  phone: string;
-  address: string;
   dateOfBirth?: string;
   placeOfBirth?: string;
   maritalStatus?: string;
@@ -54,6 +51,7 @@ export interface ExperienceItem {
   location: string;
   startDate: string;
   endDate: string;
+  bulletStyle: string |'dot' | 'dash' | 'arrow' | 'check' | 'star';
   current: boolean;
   description: string[];
   visible: boolean;
@@ -74,7 +72,7 @@ export interface EducationItem {
 
 export interface CVSection {
   id: string;
-  type: 'profile' | 'experience' | 'education' | 'skills' | 'languages' | 'interests' | 'contact' | 'custom';
+  type: 'personal-info' | 'profile' | 'experience' | 'education' | 'skills' | 'languages' | 'interests' | 'contact' | 'custom';
   title: string;
   visible: boolean;
   order: number;

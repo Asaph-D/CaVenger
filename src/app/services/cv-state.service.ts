@@ -248,6 +248,29 @@ export class CVStateService {
     this.moveSectionAdvanced(sectionId, null, column);
   }
 
+  moveSectionWithinColumn(sectionId: string, newIndex: number, column: 'left' | 'right'): void {
+    const cv = this.currentCV();
+    if (!cv) return;
+    const sections = cv.sections.filter(s => s.position === column && s.visible);
+    const sectionIndex = sections.findIndex(s => s.id === sectionId);
+    if (sectionIndex === -1) return;
+    const [section] = sections.splice(sectionIndex, 1);
+    sections.splice(newIndex, 0, section);
+    sections.forEach((s, index) => { s.order = index; });
+    this.updateState({ currentCV: { ...cv }, isDirty: true });
+  }
+
+  updateSectionSize(sectionId: string, width: number, height: number): void {
+    const cv = this.currentCV();
+    if (!cv) return;
+    const section = cv.sections.find(s => s.id === sectionId);
+    if (section) {
+      section.width = width;
+      section.height = height;
+      this.updateState({ currentCV: { ...cv }, isDirty: true });
+    }
+  }
+
   /**
    * Change la position de la photo de profil (haut ou gauche)
    */
@@ -339,11 +362,6 @@ export class CVStateService {
         contact.value = value;
       }
     };
-
-    // Update email, phone, address (always present)
-    updateOrAddContact('email', personalInfo.email, 'fas fa-envelope', 'Email');
-    updateOrAddContact('phone', personalInfo.phone, 'fas fa-phone', 'Téléphone');
-    updateOrAddContact('address', personalInfo.address, 'fas fa-map-marker-alt', 'Adresse');
 
     // Update birthday, marital status, nationality (optional)
     updateOrAddContact('birthday', personalInfo.dateOfBirth, 'fas fa-birthday-cake', 'Date de naissance');
@@ -606,6 +624,10 @@ export class CVStateService {
     this.updateState({ isEditing });
   }
 
+  setHelp(state: boolean): void {
+    this.updateState({ showHelp: state });
+  }
+
   setSelectedSection(sectionId: string | null): void {
     this.updateState({ selectedSection: sectionId });
   }
@@ -622,8 +644,9 @@ export class CVStateService {
     this.updateState({ resizeMode });
   }
 
-  toggleHelp(): void {
-    this.updateState({ showHelp: !this.state().showHelp });
+  toggleHelp(): boolean {
+    this.state.update(s => ({ ...s, showHelp: !s.showHelp }));
+    return this.state().showHelp;
   }
 
   // Private helper methods
@@ -638,6 +661,7 @@ export class CVStateService {
   private getSectionTitle(sectionType: string): string {
     const titles: Record<string, string> = {
       'profile': 'Profil Professionnel',
+      'personal-info': 'Informations Personnelles',
       'experience': 'Expérience Professionnelle',
       'education': 'Formation Académique',
       'skills': 'Compétences',
@@ -654,9 +678,6 @@ export class CVStateService {
       firstName: 'Prénom',
       lastName: 'Nom',
       title: 'Titre Professionnel',
-      email: 'email@exemple.com',
-      phone: '+33 6 12 34 56 78',
-      address: 'Ville, Pays',
       dateOfBirth: '',
       placeOfBirth: '',
       maritalStatus: '',
@@ -713,7 +734,8 @@ export class CVStateService {
           'Collaboration avec l\'équipe design pour l\'UX/UI',
           'Optimisation des performances et maintenance'
         ],
-        visible: true
+        visible: true,
+        bulletStyle: 'dot'
       }
     ];
   }
@@ -745,7 +767,7 @@ export class CVStateService {
       { id: '6', type: 'experience', title: 'Expérience Professionnelle', visible: true, order: 2, position: 'right', resizable: true, draggable: true },
       { id: '7', type: 'education', title: 'Formation Académique', visible: true, order: 3, position: 'right', resizable: true, draggable: true }
     ];
-  }
+  }  
 
   private getDefaultThemes(): CVTheme[] {
     return [

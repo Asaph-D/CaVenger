@@ -3,264 +3,372 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CVStateService } from '../../services/cv-state.service';
 import { CVTemplate } from '../../models/cv.interface';
+import { ParticlesComponent } from '../particles/particles.component'; // Chemin à adapter
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ParticlesComponent],
+  styles: [`
+    /* Fade In Animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
+    .delay-300 { animation-delay: 0.3s; opacity: 0; }
+    .delay-400 { animation-delay: 0.4s; opacity: 0; }
+    .delay-500 { animation-delay: 0.5s; opacity: 0; }
+    /* Floating Animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+    /* Shimmer Effect */
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      background-size: 1000px 100%;
+      animation: shimmer 3s infinite;
+    }
+    /* Card Hover Effect */
+    .feature-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .feature-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    /* Template Card Effect */
+    .template-card {
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .template-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.5s;
+    }
+    .template-card:hover::before {
+      left: 100%;
+    }
+    .template-card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+    }
+    /* Scroll Progress Bar */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #000, #444);
+      z-index: 1000;
+      transition: width 0.1s ease;
+    }
+    /* Stats Counter Animation */
+    @keyframes countUp {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .stat-number {
+      animation: countUp 0.6s ease-out;
+    }
+  `],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <!-- Particles Background -->
+    <app-particles></app-particles>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" [style.width.%]="scrollProgress"></div>
+
+    <div class="min-h-screen bg-black/90 text-white relative">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
+      <header class="fixed w-full top-0 z-50 transition-all duration-300"
+              [class.bg-black]="isScrolled"
+              [class.backdrop-blur-lg]="isScrolled"
+              [class.border-b]="isScrolled"
+              [ngClass]="{'border-white/10': isScrolled}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-              <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-3 rounded-xl">
-                <i class="fas fa-file-alt text-2xl"></i>
+              <div class="w-12 h-12 bg-white text-black flex items-center justify-center text-xl font-bold">
+                CV
               </div>
               <div>
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  CV Builder Pro
-                </h1>
-                <p class="text-gray-600">Créez votre CV professionnel en quelques minutes</p>
+                <h1 class="text-2xl font-light tracking-wider">CV BUILDER</h1>
+                <p class="text-xs text-gray-400 tracking-widest">PROFESSIONAL</p>
               </div>
             </div>
-            <div class="hidden md:flex items-center space-x-6">
-              <button class="text-gray-600 hover:text-gray-900 transition-colors">
-                <i class="fas fa-palette mr-2"></i>
-                Templates
+            <nav class="hidden md:flex items-center space-x-8">
+              <button (click)="scrollToSection('templates')"
+                      class="text-sm tracking-wide hover:text-gray-300 transition-colors">
+                TEMPLATES
               </button>
-              <button class="text-gray-600 hover:text-gray-900 transition-colors">
-                <i class="fas fa-question-circle mr-2"></i>
-                Aide
+              <button (click)="scrollToSection('features')"
+                      class="text-sm tracking-wide hover:text-gray-300 transition-colors">
+                FONCTIONNALITÉS
               </button>
-              <button class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all">
-                <i class="fas fa-user mr-2"></i>
-                Connexion
+              <button class="text-sm tracking-wide hover:text-gray-300 transition-colors">
+                AIDE
               </button>
-            </div>
+              <button class="bg-white text-black px-6 py-2 text-sm font-medium hover:bg-gray-200 transition-all">
+                CONNEXION
+              </button>
+            </nav>
           </div>
         </div>
       </header>
 
       <!-- Hero Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="text-center">
-          <h2 class="text-5xl font-bold text-gray-900 mb-6">
-            Créez un CV qui vous
-            <span class="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              démarque
-            </span>
+      <section class="relative min-h-screen flex items-center justify-center pt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div class="animate-fade-in delay-100">
+            <p class="text-sm tracking-[0.3em] text-gray-400 mb-8 uppercase">
+              Créateur de CV Professionnel
+            </p>
+          </div>
+
+          <h2 class="text-6xl md:text-8xl font-light mb-8 leading-tight animate-fade-in delay-200">
+            Créez un CV<br>
+            <span class="font-light">qui démarque</span>
           </h2>
-          <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Notre constructeur de CV intelligent vous aide à créer un CV professionnel personnalisé 
-            avec des templates modernes et des outils d'édition avancés.
+
+          <p class="text-xl text-gray-400 mb-12 max-w-3xl mx-auto font-light animate-fade-in delay-300">
+            Des templates élégants, des outils puissants et une expérience intuitive
+            pour créer le CV parfait en quelques minutes.
           </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in delay-400">
+            <button
               (click)="startNewCV()"
-              class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all transform hover:-translate-y-1">
-              <i class="fas fa-plus mr-2"></i>
-              Créer un nouveau CV
+              class="bg-white text-black px-8 py-4 text-sm font-medium tracking-wide hover:bg-gray-200 transition-all transform hover:scale-105">
+              CRÉER UN CV
             </button>
-            <button 
-              (click)="viewTemplates()"
-              class="border-2 border-purple-300 text-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-purple-50 transition-all">
-              <i class="fas fa-eye mr-2"></i>
-              Voir les templates
+            <button
+              (click)="scrollToSection('templates')"
+              class="border border-white/30 px-8 py-4 text-sm font-medium tracking-wide hover:bg-white/10 transition-all">
+              VOIR LES TEMPLATES
             </button>
+          </div>
+
+          <!-- Scroll Indicator -->
+          <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-fade-in delay-500">
+            <div class="w-6 h-10 border border-white/30 rounded-full flex justify-center">
+              <div class="w-1 h-3 bg-white rounded-full mt-2 animate-bounce"></div>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- Features Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="text-center mb-16">
-          <h3 class="text-3xl font-bold text-gray-900 mb-4">
-            Pourquoi choisir CV Builder Pro ?
-          </h3>
-          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Des outils professionnels pour créer le CV parfait, adapté à votre domaine
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8">
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-pink-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-palette text-2xl text-pink-600"></i>
-            </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">Design Personnalisable</h4>
-            <p class="text-gray-600">
-              Choisissez parmi nos thèmes professionnels et personnalisez les couleurs, 
-              polices et mise en page selon vos préférences.
+      <section id="features" class="py-32 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-20">
+            <p class="text-sm tracking-[0.3em] text-gray-400 mb-4 uppercase">Fonctionnalités</p>
+            <h3 class="text-4xl md:text-5xl font-light mb-6">
+              Tout ce dont vous avez besoin
+            </h3>
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto font-light">
+              Des outils professionnels pour créer un CV impeccable
             </p>
           </div>
-
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-purple-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-edit text-2xl text-purple-600"></i>
+          <div class="grid md:grid-cols-3 gap-8">
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                ✏️
+              </div>
+              <h4 class="text-xl font-light mb-4">Édition Intuitive</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                Interface simple et élégante. Modifiez votre CV en temps réel
+                avec des outils d'édition puissants.
+              </p>
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">Édition Intuitive</h4>
-            <p class="text-gray-600">
-              Interface glisser-déposer simple, édition en temps réel et ajout/suppression 
-              facile de sections selon vos besoins.
-            </p>
-          </div>
-
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-download text-2xl text-blue-600"></i>
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                🎨
+              </div>
+              <h4 class="text-xl font-light mb-4">Design Personnalisable</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                15+ templates professionnels. Personnalisez les couleurs,
+                polices et mise en page selon vos préférences.
+              </p>
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">Export Multi-Format</h4>
-            <p class="text-gray-600">
-              Téléchargez votre CV en PDF haute qualité, Word ou partagez-le directement 
-              via un lien personnalisé.
-            </p>
-          </div>
-
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-green-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-expand-arrows-alt text-2xl text-green-600"></i>
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                📥
+              </div>
+              <h4 class="text-xl font-light mb-4">Export Multi-Format</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                Téléchargez en PDF haute qualité, Word ou partagez
+                directement via un lien personnalisé.
+              </p>
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">Redimensionnement Intelligent</h4>
-            <p class="text-gray-600">
-              Redimensionnez les colonnes, ajustez la taille des polices et organisez 
-              votre contenu avec des outils de mise en page avancés.
-            </p>
-          </div>
-
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-yellow-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-icons text-2xl text-yellow-600"></i>
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                ↔️
+              </div>
+              <h4 class="text-xl font-light mb-4">Mise en Page Flexible</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                Redimensionnez les colonnes et organisez votre contenu
+                avec des outils de mise en page avancés.
+              </p>
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">200+ Icônes FontAwesome</h4>
-            <p class="text-gray-600">
-              Personnalisez votre CV avec plus de 200 icônes professionnelles. 
-              Changez les icônes en un clic pour un rendu unique.
-            </p>
-          </div>
-
-          <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-            <div class="bg-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <i class="fas fa-save text-2xl text-indigo-600"></i>
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                ⚡
+              </div>
+              <h4 class="text-xl font-light mb-4">200+ Icônes</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                Bibliothèque complète d'icônes FontAwesome pour
+                personnaliser votre CV de façon unique.
+              </p>
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-4">Sauvegarde Automatique</h4>
-            <p class="text-gray-600">
-              Vos modifications sont sauvegardées automatiquement. Travaillez en toute 
-              sérénité sans risquer de perdre votre travail.
-            </p>
+            <div class="feature-card bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+              <div class="w-14 h-14 bg-white/10 flex items-center justify-center mb-6 text-2xl">
+                💾
+              </div>
+              <h4 class="text-xl font-light mb-4">Sauvegarde Auto</h4>
+              <p class="text-gray-400 font-light leading-relaxed">
+                Vos modifications sont sauvegardées automatiquement.
+                Travaillez en toute sérénité.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Templates Preview -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="text-center mb-16">
-          <h3 class="text-3xl font-bold text-gray-900 mb-4">
-            15+ Templates Professionnels
-          </h3>
-          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Commencez avec l'un de nos templates conçus par des professionnels pour différents secteurs
-          </p>
-        </div>
+      <!-- Templates Section -->
+      <section id="templates" class="py-32 bg-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-20">
+            <p class="text-sm tracking-[0.3em] text-gray-400 mb-4 uppercase">Templates</p>
+            <h3 class="text-4xl md:text-5xl font-light mb-6">
+              15+ Designs Professionnels
+            </h3>
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto font-light">
+              Choisissez parmi notre collection de templates élégants conçus par des professionnels
+            </p>
+          </div>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div
+              *ngFor="let template of availableTemplates().slice(0, 6)"
+              class="template-card bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden cursor-pointer group"
+              (click)="selectTemplate(template)">
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div 
-            *ngFor="let template of availableTemplates().slice(0, 9)" 
-            class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-2 group"
-            (click)="selectTemplate(template)">
-            
-            <div class="h-64 bg-gradient-to-br overflow-hidden relative"
-                 [style.background]="getTemplateGradient(template)">
-              <img [src]="template.thumbnail" 
-                   [alt]="template.name"
-                   class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
-              <div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all"></div>
-              <div class="absolute top-4 right-4">
-                <span class="bg-white bg-opacity-90 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
-                  {{ template.layout | titlecase }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="p-6">
-              <h4 class="text-xl font-bold text-gray-900 mb-2">{{ template.name }}</h4>
-              <p class="text-gray-600 mb-4">{{ template.description }}</p>
-              <div class="flex items-center justify-between">
-                <div class="flex space-x-1">
-                  <div class="w-3 h-3 rounded-full" [style.background-color]="template.theme.primaryColor"></div>
-                  <div class="w-3 h-3 rounded-full" [style.background-color]="template.theme.secondaryColor"></div>
-                  <div class="w-3 h-3 rounded-full" [style.background-color]="template.theme.accentColor"></div>
+              <div class="h-80 bg-white/10 relative overflow-hidden">
+                <img *ngIf="template.thumbnail"
+                     [src]="template.thumbnail"
+                     [alt]="template.name"
+                     class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute top-4 right-4">
+                  <span class="bg-black/50 backdrop-blur-sm text-white px-3 py-1 text-xs tracking-wider">
+                    {{ template.layout | uppercase }}
+                  </span>
                 </div>
-                <button class="bg-purple-100 text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-200 transition-colors group-hover:bg-purple-600 group-hover:text-white">
-                  <i class="fas fa-arrow-right mr-1"></i>
-                  Utiliser
-                </button>
+              </div>
+
+              <div class="p-6">
+                <h4 class="text-xl font-light mb-2">{{ template.name }}</h4>
+                <p class="text-gray-400 text-sm mb-4 font-light">{{ template.description }}</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex space-x-2">
+                    <div class="w-3 h-3 border border-white/30"
+                         [style.background-color]="template.theme.primaryColor"></div>
+                    <div class="w-3 h-3 border border-white/30"
+                         [style.background-color]="template.theme.secondaryColor"></div>
+                    <div class="w-3 h-3 border border-white/30"
+                         [style.background-color]="template.theme.accentColor"></div>
+                  </div>
+                  <button class="text-sm tracking-wide group-hover:text-white transition-colors">
+                    UTILISER →
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Show more templates button -->
-        <div class="text-center mt-12">
-          <button 
-            (click)="viewAllTemplates()"
-            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-lg hover:shadow-lg transition-all">
-            <i class="fas fa-th mr-2"></i>
-            Voir tous les {{ availableTemplates().length }} templates
-          </button>
+          <div class="text-center mt-16">
+            <button
+              (click)="viewAllTemplates()"
+              class="border border-white/30 px-8 py-3 text-sm tracking-wide hover:bg-white/10 transition-all">
+              VOIR TOUS LES {{ availableTemplates().length }} TEMPLATES
+            </button>
+          </div>
         </div>
       </section>
 
       <!-- Saved CVs Section -->
-      <section *ngIf="savedCVs().length > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="text-center mb-16">
-          <h3 class="text-3xl font-bold text-gray-900 mb-4">
-            Vos CV Sauvegardés
-          </h3>
-          <p class="text-lg text-gray-600">
-            Continuez à travailler sur vos CV existants
-          </p>
-        </div>
+      <section *ngIf="savedCVs().length > 0" class="py-32 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-20">
+            <p class="text-sm tracking-[0.3em] text-gray-400 mb-4 uppercase">Vos CV</p>
+            <h3 class="text-4xl md:text-5xl font-light mb-6">
+              Reprendre votre travail
+            </h3>
+          </div>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              *ngFor="let cv of savedCVs()"
+              class="bg-white/5 backdrop-blur-sm border border-white/10 p-6 hover:border-white/30 transition-all cursor-pointer group"
+              (click)="loadCV(cv.id)">
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div 
-            *ngFor="let cv of savedCVs()" 
-            class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer group"
-            (click)="loadCV(cv.id)">
-            
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                     [style.background]="cv.theme.primaryColor">
-                  {{ getInitials(cv.personalInfo.firstName, cv.personalInfo.lastName) }}
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 flex items-center justify-center text-black font-bold"
+                       [style.background-color]="cv.theme.primaryColor">
+                    {{ getInitials(cv.personalInfo.firstName, cv.personalInfo.lastName) }}
+                  </div>
+                  <div>
+                    <h4 class="font-light">
+                      {{ cv.personalInfo.firstName }} {{ cv.personalInfo.lastName }}
+                    </h4>
+                    <p class="text-xs text-gray-400">
+                      {{ cv.updatedAt | date:'short' }}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="text-lg font-bold text-gray-900">
-                    {{ cv.personalInfo.firstName }} {{ cv.personalInfo.lastName }}
-                  </h4>
-                  <p class="text-sm text-gray-500">
-                    {{ cv.updatedAt | date:'short' }}
-                  </p>
-                </div>
+                <button class="opacity-0 group-hover:opacity-100 transition-opacity">
+                  ✏️
+                </button>
               </div>
-              <button class="text-purple-600 hover:text-purple-800 transition-colors opacity-0 group-hover:opacity-100">
-                <i class="fas fa-edit text-lg"></i>
-              </button>
-            </div>
-            
-            <p class="text-gray-600 mb-4">{{ cv.personalInfo.title }}</p>
-            
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium px-2 py-1 rounded-full"
-                    [style.background-color]="cv.theme.backgroundColor"
-                    [style.color]="cv.theme.primaryColor">
-                {{ cv.template.name }}
-              </span>
-              <div class="flex space-x-1">
-                <div class="w-2 h-2 rounded-full" [style.background-color]="cv.theme.primaryColor"></div>
-                <div class="w-2 h-2 rounded-full" [style.background-color]="cv.theme.secondaryColor"></div>
-                <div class="w-2 h-2 rounded-full" [style.background-color]="cv.theme.accentColor"></div>
+
+              <p class="text-gray-400 text-sm mb-4">{{ cv.personalInfo.title }}</p>
+
+              <div class="flex items-center justify-between">
+                <span class="text-xs tracking-wider text-gray-400">
+                  {{ cv.template.name }}
+                </span>
+                <div class="flex space-x-1">
+                  <div class="w-2 h-2 border border-white/30"
+                       [style.background-color]="cv.theme.primaryColor"></div>
+                  <div class="w-2 h-2 border border-white/30"
+                       [style.background-color]="cv.theme.secondaryColor"></div>
+                  <div class="w-2 h-2 border border-white/30"
+                       [style.background-color]="cv.theme.accentColor"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -268,76 +376,70 @@ import { CVTemplate } from '../../models/cv.interface';
       </section>
 
       <!-- Statistics Section -->
-      <section class="bg-white py-20">
+      <section class="py-32 border-t border-white/10 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-16">
-            <h3 class="text-3xl font-bold text-gray-900 mb-4">
-              Rejoignez des milliers d'utilisateurs satisfaits
-            </h3>
-          </div>
-          
-          <div class="grid md:grid-cols-4 gap-8 text-center">
+          <div class="grid md:grid-cols-4 gap-12 text-center">
             <div>
-              <div class="text-4xl font-bold text-purple-600 mb-2">50K+</div>
-              <div class="text-gray-600">CV créés</div>
+              <div class="text-5xl font-light mb-3 stat-number">50K+</div>
+              <div class="text-sm tracking-wider text-gray-400 uppercase">CV créés</div>
             </div>
             <div>
-              <div class="text-4xl font-bold text-pink-600 mb-2">15+</div>
-              <div class="text-gray-600">Templates disponibles</div>
+              <div class="text-5xl font-light mb-3 stat-number">15+</div>
+              <div class="text-sm tracking-wider text-gray-400 uppercase">Templates</div>
             </div>
             <div>
-              <div class="text-4xl font-bold text-blue-600 mb-2">200+</div>
-              <div class="text-gray-600">Icônes FontAwesome</div>
+              <div class="text-5xl font-light mb-3 stat-number">200+</div>
+              <div class="text-sm tracking-wider text-gray-400 uppercase">Icônes</div>
             </div>
             <div>
-              <div class="text-4xl font-bold text-green-600 mb-2">98%</div>
-              <div class="text-gray-600">Satisfaction client</div>
+              <div class="text-5xl font-light mb-3 stat-number">98%</div>
+              <div class="text-sm tracking-wider text-gray-400 uppercase">Satisfaction</div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Footer -->
-      <footer class="bg-gray-900 text-white py-12">
+      <footer class="border-t border-white/10 py-16 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="grid md:grid-cols-4 gap-8">
+          <div class="grid md:grid-cols-4 gap-12">
             <div>
               <div class="flex items-center space-x-2 mb-4">
-                <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2 rounded-lg">
-                  <i class="fas fa-file-alt"></i>
+                <div class="w-8 h-8 bg-white text-black flex items-center justify-center text-sm font-bold">
+                  CV
                 </div>
-                <h5 class="text-lg font-bold">CV Builder Pro</h5>
+                <h5 class="font-light tracking-wider">CV BUILDER</h5>
               </div>
-              <p class="text-gray-400">
+              <p class="text-gray-400 text-sm font-light">
                 Créez des CV professionnels qui vous aideront à décrocher l'emploi de vos rêves.
               </p>
             </div>
             <div>
-              <h5 class="text-lg font-bold mb-4">Produit</h5>
-              <ul class="space-y-2 text-gray-400">
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-palette mr-2"></i>Templates</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-star mr-2"></i>Fonctionnalités</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-tag mr-2"></i>Tarifs</a></li>
+              <h5 class="font-light mb-4 tracking-wider">PRODUIT</h5>
+              <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Templates</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Fonctionnalités</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Tarifs</a></li>
               </ul>
             </div>
             <div>
-              <h5 class="text-lg font-bold mb-4">Support</h5>
-              <ul class="space-y-2 text-gray-400">
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i>Aide</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i>Contact</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-comments mr-2"></i>FAQ</a></li>
+              <h5 class="font-light mb-4 tracking-wider">SUPPORT</h5>
+              <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Aide</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h5 class="text-lg font-bold mb-4">Légal</h5>
-              <ul class="space-y-2 text-gray-400">
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-shield-alt mr-2"></i>Confidentialité</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-file-contract mr-2"></i>Conditions</a></li>
-                <li><a href="#" class="hover:text-white transition-colors flex items-center"><i class="fas fa-cookie-bite mr-2"></i>Cookies</a></li>
+              <h5 class="font-light mb-4 tracking-wider">LÉGAL</h5>
+              <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Confidentialité</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Conditions</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Cookies</a></li>
               </ul>
             </div>
           </div>
-          <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div class="border-t border-white/10 mt-12 pt-8 text-center text-gray-400 text-sm">
             <p>&copy; 2024 CV Builder Pro. Tous droits réservés.</p>
           </div>
         </div>
@@ -348,9 +450,23 @@ import { CVTemplate } from '../../models/cv.interface';
 export class HomeComponent {
   private cvService = inject(CVStateService);
   private router = inject(Router);
-
   availableTemplates = this.cvService.availableTemplates;
   savedCVs = this.cvService.savedCVs;
+
+  scrollProgress = 0;
+  isScrolled = false;
+
+  ngAfterViewInit(): void {
+    this.initScrollListener();
+  }
+
+  initScrollListener() {
+    window.addEventListener('scroll', () => {
+      const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      this.scrollProgress = scrolled;
+      this.isScrolled = window.scrollY > 50;
+    });
+  }
 
   startNewCV(): void {
     this.cvService.createNewCV();
@@ -368,19 +484,13 @@ export class HomeComponent {
     this.router.navigate(['/builder']);
   }
 
-  viewTemplates(): void {
-    // Scroll to templates section
-    const templatesSection = document.querySelector('section:nth-of-type(3)');
-    templatesSection?.scrollIntoView({ behavior: 'smooth' });
+  scrollToSection(sectionId: string): void {
+    const section = document.getElementById(sectionId);
+    section?.scrollIntoView({ behavior: 'smooth' });
   }
 
   viewAllTemplates(): void {
-    // Could open a modal or navigate to a dedicated templates page
-    this.viewTemplates();
-  }
-
-  getTemplateGradient(template: CVTemplate): string {
-    return `linear-gradient(135deg, ${template.theme.primaryColor}, ${template.theme.secondaryColor})`;
+    this.scrollToSection('templates');
   }
 
   getInitials(firstName: string, lastName: string): string {

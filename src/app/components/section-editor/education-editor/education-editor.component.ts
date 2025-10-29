@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CVStateService } from '../../../services/cv-state.service';
+import { ThemeService } from '../../../services/theme.service';
 import { EducationItem } from '../../../models/cv.interface';
 
 @Component({
@@ -9,119 +10,119 @@ import { EducationItem } from '../../../models/cv.interface';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="p-6">
+    <div class="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       <div class="flex items-center justify-between mb-6">
-        <h4 class="text-lg font-semibold text-gray-900">Formation Académique</h4>
-        <button 
+        <h4 class="text-lg font-semibold">Formation Académique</h4>
+        <button
           (click)="addEducation()"
-          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
           <i class="fas fa-plus mr-2"></i>
           Ajouter
         </button>
       </div>
 
-      <!-- Education List -->
+      <!-- Liste des formations -->
       <div class="space-y-6">
-        <div *ngFor="let edu of educations; trackBy: trackByEducationId" 
-             class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-          
-          <!-- Header with delete button -->
+        <div *ngFor="let edu of educations; trackBy: trackByEducationId"
+             class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600">
+
+          <!-- En-tête avec bouton de suppression -->
           <div class="flex items-center justify-between mb-4">
-            <h5 class="font-medium text-gray-900">Formation {{ getEducationIndex(edu.id) + 1 }}</h5>
-            <button 
+            <h5 class="font-medium">Formation {{ getEducationIndex(edu.id) + 1 }}</h5>
+            <button
               (click)="removeEducation(edu.id)"
-              class="text-red-600 hover:text-red-800 transition-colors p-2"
+              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors p-2"
               title="Supprimer la formation">
               <i class="fas fa-trash"></i>
             </button>
           </div>
 
-          <!-- Basic Information -->
+          <!-- Informations de base -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Diplôme *
               </label>
-              <input 
+              <input
                 type="text"
                 [(ngModel)]="edu.degree"
                 (ngModelChange)="updateEducation(edu.id, {degree: edu.degree})"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 placeholder="Ex: Master en Informatique">
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Institution *
               </label>
-              <input 
+              <input
                 type="text"
                 [(ngModel)]="edu.institution"
                 (ngModelChange)="updateEducation(edu.id, {institution: edu.institution})"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 placeholder="Nom de l'établissement">
             </div>
           </div>
 
           <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Lieu
             </label>
-            <input 
+            <input
               type="text"
               [(ngModel)]="edu.location"
               (ngModelChange)="updateEducation(edu.id, {location: edu.location})"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               placeholder="Ville, Pays">
           </div>
 
           <!-- Dates -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Date de début *
               </label>
-              <input 
+              <input
                 type="month"
                 [(ngModel)]="edu.startDate"
                 (ngModelChange)="updateEducation(edu.id, {startDate: edu.startDate})"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Date de fin
               </label>
-              <input 
+              <input
                 type="month"
                 [(ngModel)]="edu.endDate"
                 (ngModelChange)="updateEducation(edu.id, {endDate: edu.endDate})"
                 [disabled]="edu.current"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100">
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-600">
             </div>
           </div>
 
           <div class="mb-4">
-            <label class="flex items-center">
-              <input 
+            <label class="flex items-center cursor-pointer">
+              <input
                 type="checkbox"
                 [(ngModel)]="edu.current"
                 (ngModelChange)="updateEducation(edu.id, {current: edu.current, endDate: edu.current ? '' : edu.endDate})"
-                class="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-              <span class="text-sm font-medium text-gray-700">Formation en cours</span>
+                class="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-600 rounded">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Formation en cours</span>
             </label>
           </div>
 
-          <!-- Additional Information -->
+          <!-- Informations supplémentaires -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Mention/Note
               </label>
-              <select 
+              <select
                 [(ngModel)]="edu.grade"
                 (ngModelChange)="updateEducation(edu.id, {grade: edu.grade})"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                 <option value="">-- Sélectionner --</option>
                 <option value="Très bien">Très bien</option>
                 <option value="Bien">Bien</option>
@@ -136,39 +137,39 @@ import { EducationItem } from '../../../models/cv.interface';
 
           <!-- Description -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description (optionnel)
             </label>
-            <textarea 
+            <textarea
               [(ngModel)]="edu.description"
               (ngModelChange)="updateEducation(edu.id, {description: edu.description})"
               rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
               placeholder="Spécialisation, projets importants, cours pertinents..."></textarea>
           </div>
         </div>
       </div>
 
-      <!-- Empty State -->
+      <!-- État vide -->
       <div *ngIf="!educations.length" class="text-center py-12">
-        <i class="fas fa-graduation-cap text-4xl text-gray-300 mb-4"></i>
-        <h5 class="text-lg font-medium text-gray-600 mb-2">Aucune formation ajoutée</h5>
-        <p class="text-gray-500 mb-4">Ajoutez vos formations pour mettre en valeur votre parcours académique</p>
-        <button 
+        <i class="fas fa-graduation-cap text-4xl text-gray-300 dark:text-gray-500 mb-4"></i>
+        <h5 class="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">Aucune formation ajoutée</h5>
+        <p class="text-gray-500 dark:text-gray-400 mb-4">Ajoutez vos formations pour mettre en valeur votre parcours académique</p>
+        <button
           (click)="addEducation()"
-          class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+          class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors">
           <i class="fas fa-plus mr-2"></i>
           Ajouter ma première formation
         </button>
       </div>
 
-      <!-- Education Level Guide -->
-      <div *ngIf="educations.length > 0" class="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h5 class="font-medium text-blue-900 mb-3">
+      <!-- Guide des niveaux de formation -->
+      <div *ngIf="educations.length > 0" class="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <h5 class="font-medium text-blue-900 dark:text-blue-300 mb-3">
           <i class="fas fa-info-circle mr-2"></i>
           Guide des niveaux de formation
         </h5>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-300">
           <div>
             <p><strong>Bac +2:</strong> BTS, DUT, DEUG</p>
             <p><strong>Bac +3:</strong> Licence, Bachelor</p>
@@ -182,13 +183,13 @@ import { EducationItem } from '../../../models/cv.interface';
         </div>
       </div>
 
-      <!-- Tips -->
-      <div *ngIf="educations.length > 0" class="mt-4 p-4 bg-green-50 rounded-lg">
-        <h5 class="font-medium text-green-900 mb-2">
+      <!-- Conseils -->
+      <div *ngIf="educations.length > 0" class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <h5 class="font-medium text-green-900 dark:text-green-300 mb-2">
           <i class="fas fa-lightbulb mr-2"></i>
           Conseils pour vos formations
         </h5>
-        <ul class="text-sm text-green-800 space-y-1">
+        <ul class="text-sm text-green-800 dark:text-green-300 space-y-1">
           <li>• Listez vos formations par ordre chronologique inverse</li>
           <li>• Mentionnez les spécialisations pertinentes pour le poste visé</li>
           <li>• Incluez les formations continues et certifications</li>
@@ -200,6 +201,7 @@ import { EducationItem } from '../../../models/cv.interface';
 })
 export class EducationEditorComponent {
   private cvService = inject(CVStateService);
+  private themeService = inject(ThemeService);
 
   get educations(): EducationItem[] {
     return this.cvService.currentCV()?.education || [];

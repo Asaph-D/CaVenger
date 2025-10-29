@@ -39,7 +39,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
       </div>
 
       <!-- Two Column Layout -->
-      <div class="flex flex-col md:flex-row min-h-[297mm] relative">
+      <div class="flex flex-row min-h-[297mm] relative">
         
         <!-- Left Column -->
         <div class="left-column transition-all duration-300"
@@ -107,15 +107,35 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
           <!-- Left Column Sections -->
           <div class="px-8 pb-8">
             <div *ngFor="let section of getLeftSections(); trackBy: trackBySection" 
-                 class="section-container mb-8 relative group"
-                 [attr.data-section-id]="section.id"
-                 (mouseenter)="hoveredSection = section.id"
-                 (mouseleave)="hoveredSection = null">
+                class="section-container mb-8 relative group cursor-pointer hover:bg-white hover:bg-opacity-10 rounded-lg transition-all p-2 -m-2"
+                [attr.data-section-id]="section.id"
+                [class.ring-2]="cvService.selectedSection() === section.id"
+                [class.ring-yellow-400]="cvService.selectedSection() === section.id"
+                (click)="selectSection(section.id)"
+                (mouseenter)="hoveredSection = section.id"
+                (mouseleave)="hoveredSection = null"
+                [class.dragging]="isDragging && draggedSection?.id === section.id"
+                [class.drag-over-valid]="dragOverIndex === getSectionIndex(section.id, 'left') && dragValid"
+                [class.drag-over-invalid]="dragOverIndex === getSectionIndex(section.id, 'left') && !dragValid"
+                draggable="true"
+                (dragstart)="onDragStart($event, section, 'left')"
+                (dragover)="onDragOver($event, section.id, 'left')"
+                (drop)="onDrop($event, section.id, 'left')"
+                (dragend)="onDragEnd()">
+              
+              <!-- Indicateur de sélection -->
+              <div *ngIf="cvService.selectedSection() === section.id" 
+                  class="absolute -left-1 top-0 bottom-0 w-1 bg-yellow-400 rounded-r"></div>
               
               <!-- Section controls -->
               <div *ngIf="hoveredSection === section.id && !isPrinting" 
-                   class="section-controls absolute -top-2 -right-2 z-10">
-                <button (click)="removeSection(section.id)" 
+                  class="section-controls absolute -top-2 -right-2 z-10">
+                <button (click)="editSection(section.id); $event.stopPropagation()" 
+                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 mr-1"
+                        title="Éditer la section">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button (click)="removeSection(section.id); $event.stopPropagation()" 
                         class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                         title="Supprimer la section">
                   <i class="fas fa-trash"></i>
@@ -221,6 +241,14 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                 </div>
 
               </ng-container>
+              <div *ngIf="hoveredSection === section.id && !isPrinting"
+                  class="resize-handle-height"
+                  (mousedown)="startResizeSection($event, section.id, 'height')"></div>
+
+              <!-- Poignée de redimensionnement (largeur) -->
+              <div *ngIf="hoveredSection === section.id && !isPrinting"
+                  class="resize-handle-width"
+                  (mousedown)="startResizeSection($event, section.id, 'width')"></div>
             </div>
           </div>
         </div>
@@ -229,16 +257,36 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
         <div class="right-column flex-1 p-8 transition-all duration-300"
              [class.dragging]="isDragging">
           
-          <div *ngFor="let section of getRightSections(); trackBy: trackBySection" 
-               class="section-container mb-8 relative group"
-               [attr.data-section-id]="section.id"
-               (mouseenter)="hoveredSection = section.id"
-               (mouseleave)="hoveredSection = null">
+          <div *ngFor="let section of getRightSections(); trackBy: trackBySection"
+              class="section-container mb-8 relative group cursor-pointer hover:bg-gray-50 rounded-lg transition-all p-2 -m-2"
+              [attr.data-section-id]="section.id"
+              [class.ring-2]="cvService.selectedSection() === section.id"
+              [class.ring-purple-500]="cvService.selectedSection() === section.id"
+              [class.dragging]="isDragging && draggedSection?.id === section.id"
+              [class.drag-over-valid]="dragOverIndex === getSectionIndex(section.id, 'right') && dragValid"
+              [class.drag-over-invalid]="dragOverIndex === getSectionIndex(section.id, 'right') && !dragValid"
+              (click)="selectSection(section.id)"
+              (mouseenter)="hoveredSection = section.id"
+              (mouseleave)="hoveredSection = null"
+              draggable="true"
+              (dragstart)="onDragStart($event, section, 'right')"
+              (dragover)="onDragOver($event, section.id, 'right')"
+              (drop)="onDrop($event, section.id, 'right')"
+              (dragend)="onDragEnd()">
+            
+            <!-- Indicateur de sélection -->
+            <div *ngIf="cvService.selectedSection() === section.id" 
+                class="absolute -left-1 top-0 bottom-0 w-1 bg-purple-500 rounded-r"></div>
             
             <!-- Section controls -->
             <div *ngIf="hoveredSection === section.id && !isPrinting" 
-                 class="section-controls absolute -top-2 -right-2 z-10">
-              <button (click)="removeSection(section.id)" 
+                class="section-controls absolute -top-2 -right-2 z-10">
+              <button (click)="editSection(section.id); $event.stopPropagation()" 
+                      class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 mr-1"
+                      title="Éditer la section">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button (click)="removeSection(section.id); $event.stopPropagation()" 
                       class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                       title="Supprimer la section">
                 <i class="fas fa-trash"></i>
@@ -285,8 +333,24 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                         </span>
                       </div>
                       <p class="font-semibold text-gray-700 mb-2">{{ exp.company }} - {{ exp.location }}</p>
-                      <ul class="list-disc pl-5 text-gray-700 space-y-1">
-                        <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                      <ul class="pl-5 text-gray-700  space-y-1"
+                          [class.list-disc]="exp.bulletStyle === 'disc'"
+                          [class.list-circle]="exp.bulletStyle === 'circle'"
+                          [class.list-square]="exp.bulletStyle === 'square'"
+                          [class.list-none]="!exp.bulletStyle || exp.bulletStyle === 'none'">
+                        <li *ngFor="let desc of exp.description" class="relative">
+                          <!-- Affichage personnalisé pour les styles non-CSS (arrow, dash) -->
+                          <span *ngIf="exp.bulletStyle === 'arrow'" class="absolute left-0 -ml-5">→</span>
+                          <span *ngIf="exp.bulletStyle === 'dash'" class="absolute left-0 -ml-5">-</span>
+                          <span *ngIf="exp.bulletStyle === 'square'" class="absolute left-0 -ml-5">■</span>
+                          <span *ngIf="exp.bulletStyle === 'smallcircle'" class="absolute left-0 -ml-5">○</span>
+                          <span *ngIf="exp.bulletStyle === 'circle'" class="absolute left-0 -ml-5">◯</span>
+                          <span *ngIf="exp.bulletStyle === 'check'" class="absolute left-0 -ml-5">✔</span>
+                          <span *ngIf="exp.bulletStyle === 'star'" class="absolute left-0 -ml-5">★</span>
+                          <span *ngIf="exp.bulletStyle === 'dot'" class="absolute left-0 -ml-5">•</span>
+                          
+                          {{ desc }}
+                        </li>
                       </ul>
                     </div>
                   </div>
@@ -327,6 +391,16 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               </div>
 
             </ng-container>
+            
+            <!-- Poignée de redimensionnement (hauteur) -->
+            <div *ngIf="hoveredSection === section.id && !isPrinting"
+                class="resize-handle-height"
+                (mousedown)="startResizeSection($event, section.id, 'height')"></div>
+
+            <!-- Poignée de redimensionnement (largeur) -->
+            <div *ngIf="hoveredSection === section.id && !isPrinting"
+                class="resize-handle-width"
+                (mousedown)="startResizeSection($event, section.id, 'width')"></div>
           </div>
         </div>
       </div>
@@ -684,12 +758,142 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
     .swap-columns-btn:hover {
       background: #2563eb;
     }
+
+    .section-container {
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .section-container:hover {
+      transform: translateX(2px);
+    }
+
+    .section-container.cursor-pointer:active {
+      transform: scale(0.98);
+    }
+
+    .section-controls {
+      display: flex;
+      gap: 0.25rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .group:hover .section-controls {
+      opacity: 1;
+    }
+
+    .section-controls button {
+      transition: all 0.2s;
+    }
+
+    .section-controls button:hover {
+      transform: scale(1.1);
+    }
+    
+    .section-container.dragging {
+      opacity: 0.7;
+      border: 2px dashed #3b82f6;
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .drag-over-valid {
+      border: 2px dashed #10b981 !important;
+      background-color: rgba(16, 185, 129, 0.1) !important;
+    }
+
+    .drag-over-invalid {
+      border: 2px dashed #ef4444 !important;
+      background-color: rgba(239, 68, 68, 0.1) !important;
+    }
+
+    .drag-invalid-overlay {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.3; }
+    }
+
+    .drag-ghost {
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transform: rotate(-5deg);
+      pointer-events: none;
+    }
+
+    .resize-handle-height {
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      right: 0;
+      height: 12px;
+      cursor: row-resize;
+      background: #3b82f6;
+      opacity: 0.7;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .resize-handle-width {
+      position: absolute;
+      top: 0;
+      right: -8px;
+      bottom: 0;
+      width: 12px;
+      cursor: col-resize;
+      background: #3b82f6;
+      opacity: 0.7;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .resize-handle-width {
+        display: none;
+      }
+    }
+    
+    /* Dans la section @media (max-width: 768px) */
+    @media (max-width: 768px) {
+      .cv-preview-container {
+        width: 100%;
+        min-height: auto;
+        margin: 0;
+      }
+
+      /* Affichage en colonnes côte à côte */
+      .flex {
+        display: flex;
+        flex-direction: row;
+      }
+
+      /* Largeur des colonnes */
+      .left-column {
+        width: 40% !important;
+        padding-right: 1rem;
+      }
+
+      .right-column {
+        width: 60% !important;
+        padding-left: 1rem;
+      }
+
+      /* Ajustement des marges et tailles */
+      .profile-section {
+        padding: 1rem !important;
+      }
+
+      .section-container {
+        margin-bottom: 1rem !important;
+      }
+    }
   `]
 })
 export class CVPreviewComponent implements AfterViewInit {
   @ViewChild('cvContainer') cvContainer!: ElementRef;
 
-  private readonly cvService = inject(CVStateService);
+  public readonly cvService = inject(CVStateService);
   
   currentCV = this.cvService.currentCV;
   showHelp = this.cvService.showHelp;
@@ -697,7 +901,6 @@ export class CVPreviewComponent implements AfterViewInit {
   showResizeHandles = false;
   showProfileOptions = false;
   hoveredSection: string | null = null;
-  isDragging = false;
   isPrinting = false;
   showIconPicker = false;
   currentIconContext: { type: string; id: string } | null = null;
@@ -719,9 +922,31 @@ export class CVPreviewComponent implements AfterViewInit {
   dragOverColumn: 'left' | 'right' | null = null;
   dragProfilePosition: 'center-top' | 'left' | null = null;
   dragStartPos: { x: number; y: number } | null = null;
-  dragValid: boolean = true;
   isMobileDragging: boolean = false;
   mobileDragTimeout: any = null;
+  showAddSectionMenu = false;
+
+  // États pour le drag & drop
+  isDragging = false;
+  draggedSection: CVSection | null = null;
+  dragStartIndex: number | null = null;
+  dragOverIndex: number | null = null;
+  dragColumn: 'left' | 'right' | null = null;
+  dragValid: boolean = true;
+
+  // États pour le redimensionnement
+  isResizingSection = false;
+  resizedSectionId: string | null = null;
+  resizeStartY = 0;
+  resizeStartHeight = 0;
+  resizeStartX = 0;
+  resizeStartWidth = 0;
+  resizeDirection: 'height' | 'width' | null = null;
+
+  // Variables pour gérer le redimensionnement tactile
+  private isResizingTouch = false;
+  private startXTouch = 0;
+  private startWidthTouch = 0;
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
@@ -730,6 +955,7 @@ export class CVPreviewComponent implements AfterViewInit {
     this.generateHelpTips();
     this.cdr.detectChanges();
     // Mobile drag support
+    this.setupTouchEvents();
     this.setupMobileDrag();
   }
 
@@ -762,6 +988,61 @@ export class CVPreviewComponent implements AfterViewInit {
   onMouseUp(): void {
     this.isResizing = false;
     this.isDragging = false;
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onDocumentMouseMove(event: MouseEvent): void {
+    if (this.isResizingSection) {
+      this.onResizeSection(event);
+    }
+  }
+
+  @HostListener('document:mouseup')
+  onDocumentMouseUp(): void {
+    if (this.isResizingSection) {
+      this.endResizeSection();
+    }
+  }
+
+  private setupTouchEvents(): void {
+    const resizeHandle = document.querySelector('.column-resize-handle') as HTMLElement;
+    if (resizeHandle) {
+      resizeHandle.addEventListener('touchstart', (event) => this.startColumnResizeTouch(event));
+    }
+  }
+
+  // Méthode pour démarrer le redimensionnement avec un événement tactile
+  startColumnResizeTouch(event: TouchEvent): void {
+    event.preventDefault();
+    this.isResizingTouch = true;
+    this.startXTouch = event.touches[0].clientX;
+    this.startWidthTouch = this.currentCV()?.layout.leftColumnWidth ?? 33;
+
+    // Ajoutez des écouteurs pour les événements tactiles
+    document.addEventListener('touchmove', this.onTouchMove.bind(this));
+    document.addEventListener('touchend', this.onTouchEnd.bind(this));
+  }
+
+  // Méthode pour gérer le mouvement tactile
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isResizingTouch) return;
+
+    const deltaX = event.touches[0].clientX - this.startXTouch;
+    const containerWidth = this.cvContainer.nativeElement.offsetWidth;
+    const newLeftWidth = Math.max(20, Math.min(80, this.startWidthTouch + (deltaX / containerWidth) * 100));
+
+    this.cvService.resizeElement({
+      elementId: 'layout',
+      width: newLeftWidth,
+      height: 0
+    });
+  }
+
+  // Méthode pour terminer le redimensionnement tactile
+  onTouchEnd(): void {
+    this.isResizingTouch = false;
+    document.removeEventListener('touchmove', this.onTouchMove.bind(this));
+    document.removeEventListener('touchend', this.onTouchEnd.bind(this));
   }
 
   startColumnResize(event: MouseEvent): void {
@@ -1029,6 +1310,17 @@ export class CVPreviewComponent implements AfterViewInit {
     this.showNextHelpTip();
   }
 
+  selectSection(sectionId: string): void {
+    console.log('[CVPreview] Section clicked:', sectionId);
+    this.cvService.setSelectedSection(sectionId);
+  }
+
+  editSection(sectionId: string): void {
+    this.selectSection(sectionId);
+    // Optionnel : scroll vers l'éditeur si nécessaire
+    // ou émettre un événement pour que le parent ouvre l'éditeur
+  }
+
   // --- Drag & Drop Handlers ---
   onSectionDragStart(event: DragEvent | MouseEvent, sectionId: string) {
     this.dragType = 'section';
@@ -1083,6 +1375,113 @@ export class CVPreviewComponent implements AfterViewInit {
     this.resetDragState();
   }
 
+  onDragStart(event: DragEvent, section: CVSection, column: 'left' | 'right'): void {
+    event.dataTransfer?.setData('text/plain', section.id); // Pour Firefox
+    this.draggedSection = section;
+    this.dragStartIndex = this.getSectionIndex(section.id, column);
+    this.dragColumn = column;
+    this.isDragging = true;
+    this.dragValid = true;
+    this.createDragGhost(event, section.title || 'Section');
+    event.stopPropagation();
+  }
+
+
+  onDragOver(event: DragEvent, sectionId: string, column: 'left' | 'right'): void {
+    event.preventDefault();
+    // Interdit le déplacement entre colonnes
+    if (this.dragColumn !== column) {
+      this.dragValid = false;
+      return;
+    }
+    this.dragValid = true;
+    this.dragOverIndex = this.getSectionIndex(sectionId, column);
+  }
+
+  onDrop(event: DragEvent, sectionId: string, column: 'left' | 'right'): void {
+    event.preventDefault();
+    if (!this.draggedSection || this.dragStartIndex === null || this.dragOverIndex === null || !this.dragColumn || !this.dragValid) {
+      this.resetDragState();
+      return;
+    }
+    // Déplace la section dans la même colonne
+    this.cvService.moveSectionWithinColumn(this.draggedSection.id, this.dragOverIndex, this.dragColumn);
+    this.resetDragState();
+  }
+
+  onDragEnd(): void {
+    this.resetDragState();
+  }
+
+  private resetDragState(): void {
+    this.draggedSection = null;
+    this.dragStartIndex = null;
+    this.dragOverIndex = null;
+    this.dragColumn = null;
+    this.isDragging = false;
+    this.dragValid = true;
+    this.cdr.detectChanges();
+  }
+
+  public getSectionIndex(sectionId: string, column: 'left' | 'right'): number {
+    const sections = column === 'left' ? this.getLeftSections() : this.getRightSections();
+    return sections.findIndex(section => section.id === sectionId);
+  }
+
+  private createDragGhost(event: DragEvent, title: string): void {
+    const ghostElement = document.createElement('div');
+    ghostElement.className = 'drag-ghost';
+    ghostElement.textContent = title;
+    ghostElement.style.position = 'absolute';
+    ghostElement.style.backgroundColor = '#3b82f6';
+    ghostElement.style.color = 'white';
+    ghostElement.style.padding = '8px 12px';
+    ghostElement.style.borderRadius = '4px';
+    ghostElement.style.zIndex = '1000';
+    ghostElement.style.pointerEvents = 'none';
+    ghostElement.style.opacity = '0.8';
+    ghostElement.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+    ghostElement.style.transform = 'rotate(-5deg)';
+    document.body.appendChild(ghostElement);
+    event.dataTransfer?.setDragImage(ghostElement, 0, 0);
+    setTimeout(() => document.body.removeChild(ghostElement), 0);
+  }
+
+  startResizeSection(event: MouseEvent, sectionId: string, direction: 'height' | 'width'): void {
+    event.stopPropagation();
+    this.isResizingSection = true;
+    this.resizedSectionId = sectionId;
+    this.resizeDirection = direction;
+    const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
+    if (direction === 'height') {
+      this.resizeStartY = event.clientY;
+      this.resizeStartHeight = sectionElement.offsetHeight;
+    } else {
+      this.resizeStartX = event.clientX;
+      this.resizeStartWidth = sectionElement.offsetWidth;
+    }
+  }
+
+  onResizeSection(event: MouseEvent): void {
+    if (!this.isResizingSection || !this.resizedSectionId || !this.resizeDirection) return;
+    const sectionElement = document.querySelector(`[data-section-id="${this.resizedSectionId}"]`) as HTMLElement;
+    if (this.resizeDirection === 'height') {
+      const newHeight = Math.max(100, Math.min(800, this.resizeStartHeight + (event.clientY - this.resizeStartY)));
+      sectionElement.style.height = `${newHeight}px`;
+      this.cvService.updateSectionSize(this.resizedSectionId, sectionElement.offsetWidth, newHeight);
+    } else {
+      const newWidth = Math.max(200, Math.min(1000, this.resizeStartWidth + (event.clientX - this.resizeStartX)));
+      sectionElement.style.width = `${newWidth}px`;
+      this.cvService.updateSectionSize(this.resizedSectionId, newWidth, sectionElement.offsetHeight);
+    }
+  }
+
+  endResizeSection(): void {
+    this.isResizingSection = false;
+    this.resizedSectionId = null;
+    this.resizeDirection = null;
+  }
+
   // --- Profile Picture Drag ---
   onProfileDragStart(event: DragEvent | MouseEvent) {
     this.dragType = 'profile-picture';
@@ -1120,6 +1519,44 @@ export class CVPreviewComponent implements AfterViewInit {
     this.cvService.swapColumns();
   }
 
+  addNewSection(type: string, position: 'left' | 'right' = 'right'): void {
+    // Vérifie si une section du même type existe déjà
+    if (!this.canAddSection(type)) {
+      alert(`Une section de type "${type}" existe déjà.`);
+      return;
+    }
+
+    // Gestion des sections personnalisées
+    if (type === 'custom') {
+      const customTitle = prompt('Titre de la section personnalisée :', 'Section personnalisée') ?? 'Section personnalisée';
+      const customContent = prompt('Contenu initial (optionnel) :', '') ?? '';
+      this.cvService.addSection(type, position, {
+        title: customTitle,
+        data: { content: customContent }
+      });
+    } else {
+      // Ajout d'une section standard
+      this.cvService.addSection(type, position);
+    }
+
+    // Sélectionne la nouvelle section ajoutée
+    const cv = this.currentCV();
+    if (cv && cv.sections.length > 0) {
+      const newSection = cv.sections[cv.sections.length - 1];
+      this.selectSection(newSection.id);
+    }
+
+    // Ferme le menu après l'ajout
+    this.showAddSectionMenu = false;
+  }
+
+  canAddSection(type: string): boolean {
+    const cv = this.currentCV();
+    if (!cv) return false;
+    // Vérifie si une section du même type existe déjà
+    return !cv.sections.some(section => section.type === type);
+  }
+
   // --- Drag Feedback ---
   getSectionDragClass(sectionId: string, column: 'left' | 'right') {
     if (this.isDragging && this.dragType === 'section') {
@@ -1154,17 +1591,17 @@ export class CVPreviewComponent implements AfterViewInit {
     return '';
   }
 
-  resetDragState() {
-    this.dragType = null;
-    this.dragSectionId = null;
-    this.dragOverSectionId = null;
-    this.dragOverColumn = null;
-    this.dragProfilePosition = null;
-    this.isDragging = false;
-    this.dragValid = true;
-    this.isMobileDragging = false;
-    if (this.mobileDragTimeout) clearTimeout(this.mobileDragTimeout);
-  }
+  // resetDragState() {
+  //   this.dragType = null;
+  //   this.dragSectionId = null;
+  //   this.dragOverSectionId = null;
+  //   this.dragOverColumn = null;
+  //   this.dragProfilePosition = null;
+  //   this.isDragging = false;
+  //   this.dragValid = true;
+  //   this.isMobileDragging = false;
+  //   if (this.mobileDragTimeout) clearTimeout(this.mobileDragTimeout);
+  // }
 
   // --- Mobile Drag Support ---
   setupMobileDrag() {

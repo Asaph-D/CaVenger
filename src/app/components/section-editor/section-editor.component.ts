@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CVSection } from '../../models/cv.interface';
 import { CVStateService } from '../../services/cv-state.service';
+import { ThemeService } from '../../services/theme.service';
 import { EducationEditorComponent } from './education-editor/education-editor.component';
 import { ExperienceEditorComponent } from './experience-editor/experience-editor.component';
 import { PersonalInfoEditorComponent } from './personal-info-editor/personal-info-editor.component';
@@ -22,35 +23,17 @@ import { ContactComponent } from './contact/contact.component';
     ContactComponent
   ],
   template: `
-    <div class="h-full flex flex-col relative z-51"> <!-- Added relative z-51 for greater authority -->
+    <div class="h-full flex flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       <!-- Section Navigation -->
-      <div class="border-b bg-gray-50 p-4">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Édition du CV</h3>
-        <div class="space-y-1 relative z-10"> <!-- Added relative z-10 here -->
-          <button
-            *ngFor="let section of dynamicSections()"
-            (click)="selectSection(section.id); $event.stopPropagation()"
-            class="w-full text-left px-3 py-2 rounded-lg transition-colors"
-            [class.bg-purple-100]="selectedSection() === section.id"
-            [class.text-purple-700]="selectedSection() === section.id"
-            [class.hover:bg-gray-100]="selectedSection() !== section.id">
-            <i [class]="section.icon + ' mr-2'"></i>
-            {{ section.name }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Display Message for selectSection call -->
-      <div *ngIf="displayMessage" class="p-3 bg-blue-100 text-blue-800 rounded-md m-4 text-center">
-        {{ displayMessage }}
+      <div class="border-b border-gray-200 dark:border-gray-700 px-4 pt-4">
+        <h3 class="text-lg font-semibold mb-4">Édition du CV</h3>
       </div>
 
       <!-- Section Content -->
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 overflow-y-auto p-4">
         <div [ngSwitch]="selectedSectionType()">
-          
           <app-personal-info-editor
-            *ngSwitchCase="'personal-info'"
+            *ngSwitchCase="'profile'"
             class="block">
           </app-personal-info-editor>
 
@@ -75,34 +58,33 @@ import { ContactComponent } from './contact/contact.component';
           </app-education-editor>
 
           <!-- Languages Editor -->
-          <div *ngSwitchCase="'languages'" class="p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h4 class="text-lg font-semibold text-gray-900">Langues</h4>
+          <div *ngSwitchCase="'languages'" class="space-y-4">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-semibold">Langues</h4>
               <button
                 (click)="addLanguage()"
-                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
               </button>
             </div>
-
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div *ngFor="let language of currentCV()?.languages; trackBy: trackByLanguageId"
-                   class="bg-gray-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between mb-3">
+                   class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
                   <input
                     [(ngModel)]="language.name"
                     (ngModelChange)="updateLanguage(language.id, {name: language.name})"
-                    class="font-medium text-gray-900 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
+                    class="font-medium bg-transparent border-none outline-none focus:ring-2 focus:ring-purple-300 rounded px-2 py-1 w-full"
                     placeholder="Nom de la langue">
                   <button
                     (click)="removeLanguage(language.id)"
-                    class="text-red-600 hover:text-red-800 transition-colors">
+                    class="text-red-500 hover:text-red-700 transition-colors">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
-                <div class="mb-3">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                <div class="mb-2">
+                  <label class="block text-sm font-medium mb-1">
                     Niveau ({{ language.level }}%)
                   </label>
                   <input
@@ -116,31 +98,30 @@ import { ContactComponent } from './contact/contact.component';
                 <input
                   [(ngModel)]="language.levelDescription"
                   (ngModelChange)="updateLanguage(language.id, {levelDescription: language.levelDescription})"
-                  class="w-full text-sm text-gray-600 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
+                  class="w-full text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-purple-300 rounded px-2 py-1"
                   placeholder="Description du niveau (ex: Avancé C1)">
               </div>
             </div>
           </div>
 
           <!-- Interests Editor -->
-          <div *ngSwitchCase="'interests'" class="p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h4 class="text-lg font-semibold text-gray-900">Loisirs</h4>
+          <div *ngSwitchCase="'interests'" class="space-y-4">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-semibold">Loisirs</h4>
               <button
                 (click)="addInterest()"
-                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
               </button>
             </div>
-
             <div class="grid grid-cols-1 gap-3">
               <div *ngFor="let interest of currentCV()?.interests; trackBy: trackByInterestId"
-                   class="bg-gray-50 p-3 rounded-lg flex items-center space-x-3">
+                   class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg flex items-center space-x-3">
                 <select
                   [(ngModel)]="interest.icon"
                   (ngModelChange)="updateInterest(interest.id, {icon: interest.icon})"
-                  class="text-lg border-none bg-transparent outline-none">
+                  class="text-lg bg-transparent border-none outline-none">
                   <option value="fas fa-book">📚</option>
                   <option value="fas fa-plane">✈️</option>
                   <option value="fas fa-music">🎵</option>
@@ -153,11 +134,11 @@ import { ContactComponent } from './contact/contact.component';
                 <input
                   [(ngModel)]="interest.name"
                   (ngModelChange)="updateInterest(interest.id, {name: interest.name})"
-                  class="flex-1 bg-transparent border-none outline-none focus:bg-white focus:border focus:border-purple-300 focus:rounded px-2 py-1"
+                  class="flex-1 bg-transparent border-none outline-none focus:ring-2 focus:ring-purple-300 rounded px-2 py-1"
                   placeholder="Nom du loisir">
                 <button
                   (click)="removeInterest(interest.id)"
-                  class="text-red-600 hover:text-red-800 transition-colors">
+                  class="text-red-500 hover:text-red-700 transition-colors">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -165,42 +146,43 @@ import { ContactComponent } from './contact/contact.component';
           </div>
 
           <!-- Custom Section Editor -->
-          <div *ngSwitchCase="'custom'" class="p-6">
-            <h4 class="text-lg font-semibold text-gray-900 mb-4">Section personnalisée</h4>
+          <div *ngSwitchCase="'custom'" class="space-y-4">
+            <h4 class="text-lg font-semibold mb-4">Section personnalisée</h4>
             <ng-container *ngIf="selectedCustomSection() as customSection">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+              <label class="block text-sm font-medium mb-1">Titre</label>
               <input [(ngModel)]="customSection.title"
                      (ngModelChange)="updateCustomSection(customSection.id, { title: customSection.title })"
-                     class="w-full mb-4 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-300"
+                     class="w-full mb-4 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
                      placeholder="Titre de la section">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Contenu</label>
+              <label class="block text-sm font-medium mb-1">Contenu</label>
               <textarea [ngModel]="customSection.data?.content || ''"
                         (ngModelChange)="onCustomContentChange($event, customSection)"
-                        class="w-full min-h-[100px] px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-300"
+                        class="w-full min-h-[100px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
                         placeholder="Contenu de la section personnalisée"></textarea>
             </ng-container>
           </div>
 
           <!-- Default Welcome Message -->
-          <div *ngSwitchDefault class="p-6 text-center">
-            <i class="fas fa-arrow-left text-4xl text-gray-300 mb-4"></i>
-            <h4 class="text-lg font-medium text-gray-600 mb-2">Sélectionnez une section</h4>
-            <p class="text-gray-500">Choisissez une section à gauche pour commencer l'édition</p>
+          <div *ngSwitchDefault class="p-6 text-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-arrow-left text-4xl mb-4"></i>
+            <h4 class="text-lg font-medium mb-2">Sélectionnez une section</h4>
+            <p>Choisissez une section à droite pour commencer l'édition</p>
           </div>
         </div>
       </div>
+
       <!-- Navigation Arrows -->
-      <div class="p-4 flex justify-between items-center border-t bg-gray-50">
+      <div class="p-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <button
           (click)="goToPreviousSection()"
           [disabled]="!canGoPrevious()"
-          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fas fa-arrow-left mr-2"></i> Précédent
         </button>
         <button
           (click)="goToNextSection()"
           [disabled]="!canGoNext()"
-          class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           Suivant <i class="fas fa-arrow-right ml-2"></i>
         </button>
       </div>
@@ -209,18 +191,11 @@ import { ContactComponent } from './contact/contact.component';
 })
 export class SectionEditorComponent {
   private readonly cvService = inject(CVStateService);
-  private cdr = inject(ChangeDetectorRef); // Keep cdr for potential future use or other components
-
-  constructor() {
-    console.log('[SectionEditorComponent] constructor fired');
-  }
+  private readonly themeService = inject(ThemeService);
+  private cdr = inject(ChangeDetectorRef);
 
   currentCV = this.cvService.currentCV;
-  // Using the service's selectedSection signal directly
   selectedSection = this.cvService.selectedSection;
-
-  // Property to hold the message for UI display
-  displayMessage: string | null = null;
 
   // Map section types to icons and display names
   private readonly sectionTypeMap: Record<string, { icon: string; name: string }> = {
@@ -235,9 +210,9 @@ export class SectionEditorComponent {
     'custom': { icon: 'fas fa-puzzle-piece', name: 'Section personnalisée' }
   };
 
+  // --- Méthodes existantes ---
   dynamicSections(): Array<{ id: string, icon: string, name: string }> {
     const cv = this.currentCV();
-    
     if (!cv?.sections) return [];
     return cv.sections
       .filter(section => section.visible)
@@ -251,7 +226,6 @@ export class SectionEditorComponent {
 
   selectedSectionType(): string | null {
     const cv = this.currentCV();
-    // Use the selectedSection() signal directly
     const selectedId = this.selectedSection();
     if (!cv || !selectedId) return null;
     const section = cv.sections.find(s => s.id === selectedId);
@@ -260,28 +234,15 @@ export class SectionEditorComponent {
 
   ngOnInit(): void {
     const defaultSectionId = this.dynamicSections()[0]?.id;
-    // Check if a section is already selected by the service, otherwise select the first dynamic one
     if (!this.selectedSection() && defaultSectionId) {
-      console.log('Selecting default section:', defaultSectionId);
       this.selectSection(defaultSectionId);
     }
   }
 
   selectSection(sectionId: string) {
-    console.log('[SectionEditor] selectSection called with:', sectionId);
-    // Display the message on the UI
-    this.displayMessage = `[SectionEditor] selectSection called with: ${sectionId}`;
-    // Optionally, clear the message after a few seconds
-    setTimeout(() => {
-      this.displayMessage = null;
-    }, 3000); // Message will disappear after 3 seconds
-
-    // If help is active, toggle it off when a section is selected
     if (this.cvService.showHelp()) {
       this.cvService.toggleHelp();
     }
-
-    // Update the selected section via the service, which manages the signal
     this.cvService.setSelectedSection(sectionId);
   }
 
@@ -290,7 +251,6 @@ export class SectionEditorComponent {
     const sections = this.dynamicSections();
     const currentSectionId = this.selectedSection();
     const currentIndex = sections.findIndex(s => s.id === currentSectionId);
-
     if (currentIndex > -1 && currentIndex < sections.length - 1) {
       this.selectSection(sections[currentIndex + 1].id);
     }
@@ -300,7 +260,6 @@ export class SectionEditorComponent {
     const sections = this.dynamicSections();
     const currentSectionId = this.selectedSection();
     const currentIndex = sections.findIndex(s => s.id === currentSectionId);
-
     if (currentIndex > 0) {
       this.selectSection(sections[currentIndex - 1].id);
     }
@@ -335,12 +294,7 @@ export class SectionEditorComponent {
   }
 
   removeLanguage(languageId: string): void {
-    // Replaced `confirm` with a custom message to adhere to instructions.
-    this.displayMessage = 'Functionality: Remove Language triggered. If this were a real app, a modal would appear here.';
-    setTimeout(() => {
-      this.displayMessage = null;
-      this.cvService.removeLanguage(languageId); // Perform removal after the message disappears (or after user confirms in a real modal)
-    }, 2000);
+    this.cvService.removeLanguage(languageId);
   }
 
   // Interest methods
@@ -353,10 +307,8 @@ export class SectionEditorComponent {
   }
 
   updateInterest(interestId: string, updates: any): void {
-    // Find and update the interest
     const cv = this.currentCV();
     if (!cv) return;
-
     const interest = cv.interests.find(i => i.id === interestId);
     if (interest) {
       Object.assign(interest, updates);
@@ -364,18 +316,12 @@ export class SectionEditorComponent {
   }
 
   removeInterest(interestId: string): void {
-    // Replaced `confirm` with a custom message to adhere to instructions.
-    this.displayMessage = 'Functionality: Remove Interest triggered. If this were a real app, a modal would appear here.';
-    setTimeout(() => {
-      this.displayMessage = null;
-      this.cvService.removeInterest(interestId); // Perform removal after the message disappears (or after user confirms in a real modal)
-    }, 2000);
+    this.cvService.removeInterest(interestId);
   }
 
   // Custom section methods
   selectedCustomSection() {
     const cv = this.currentCV();
-    // Use the selectedSection() signal directly
     const selectedId = this.selectedSection();
     if (!cv || !selectedId) return null;
     return cv.sections.find(s => s.id === selectedId && s.type === 'custom') || null;
@@ -391,7 +337,6 @@ export class SectionEditorComponent {
     const section = cv.sections.find(s => s.id === sectionId);
     if (section) {
       Object.assign(section, updates);
-      // Use the service's public method to trigger update
       (this.cvService as any).updateState({ currentCV: { ...cv }, isDirty: true });
     }
   }
