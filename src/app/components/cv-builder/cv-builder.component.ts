@@ -400,12 +400,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
             </button>
           </div>
         </div>
-        <button (click)="toggleDragMode()" [class.bg-orange-600]="dragMode()" [class.bg-gray-600]="!dragMode()" class="floating-button text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105" title="Mode déplacement">
-          <i class="fas fa-arrows-alt"></i>
-        </button>
-        <button (click)="toggleResizeMode()" [class.bg-indigo-600]="resizeMode()" [class.bg-gray-600]="!resizeMode()" class="floating-button text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105" title="Mode redimensionnement">
-          <i class="fas fa-expand-arrows-alt"></i>
-        </button>
       </div>
       <!-- Indicateurs -->
       <div *ngIf="autoSaving" class="fixed bottom-6 left-6 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in status-indicator">

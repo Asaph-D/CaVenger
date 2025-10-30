@@ -96,10 +96,10 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               </div>
             </div>
 
-            <h1 class="text-2xl font-bold mb-2" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+            <h1 class="text-2xl font-bold mb-2" [style.font-family]="currentCV()?.theme?.fontFamily?.heading" [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 1.1">
               {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
             </h1>
-            <h2 class="text-lg opacity-90 mb-4">
+            <h2 class="text-lg opacity-90 mb-4" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">
               {{ currentCV()?.personalInfo?.title }}
             </h2>
           </div>
@@ -123,10 +123,6 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                 (drop)="onDrop($event, section.id, 'left')"
                 (dragend)="onDragEnd()">
               
-              <!-- Indicateur de sélection -->
-              <div *ngIf="cvService.selectedSection() === section.id" 
-                  class="absolute -left-1 top-0 bottom-0 w-1 bg-yellow-400 rounded-r"></div>
-              
               <!-- Section controls -->
               <div *ngIf="hoveredSection === section.id && !isPrinting" 
                   class="section-controls absolute -top-2 -right-2 z-10">
@@ -146,7 +142,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                 
                 <!-- Contact Section -->
                 <div *ngSwitchCase="'contact'">
-                  <h3 class="text-xl font-bold mb-4 section-divider text-white">CONTACT</h3>
+                  <h3 class="text-xl font-bold mb-4 section-divider text-white" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">CONTACT</h3>
                   <div class="space-y-3">
                     <div *ngFor="let contact of getVisibleContactInfo()" class="flex items-start text-white group">
                       <i [class]="contact.icon + ' mt-1 mr-3 opacity-80 cursor-pointer hover:opacity-100'"
@@ -167,7 +163,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
 
                 <!-- Skills Section -->
                 <div *ngSwitchCase="'skills'">
-                  <h3 class="text-xl font-bold mb-4 section-divider text-white">COMPÉTENCES</h3>
+                  <h3 class="text-xl font-bold mb-4 section-divider text-white" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">COMPÉTENCES</h3>
                   <div class="space-y-3">
                     <div *ngFor="let skill of getVisibleSkills()" class="skill-item group">
                       <div class="flex items-center justify-between mb-1">
@@ -188,7 +184,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
 
                 <!-- Languages Section -->
                 <div *ngSwitchCase="'languages'">
-                  <h3 class="text-xl font-bold mb-4 section-divider text-white">LANGUES</h3>
+                  <h3 class="text-xl font-bold mb-4 section-divider text-white" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">LANGUES</h3>
                   <div class="space-y-3">
                     <div *ngFor="let language of getVisibleLanguages()" class="language-item group">
                       <div class="flex items-center justify-between mb-1">
@@ -210,7 +206,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
 
                 <!-- Interests Section -->
                 <div *ngSwitchCase="'interests'">
-                  <h3 class="text-xl font-bold mb-4 section-divider text-white">LOISIRS</h3>
+                  <h3 class="text-xl font-bold mb-4 section-divider text-white" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">LOISIRS</h3>
                   <div class="flex flex-wrap gap-2">
                     <span *ngFor="let interest of getVisibleInterests()" 
                           class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm flex items-center text-white group">
@@ -229,7 +225,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
 
                 <!-- Custom Section -->
                 <div *ngSwitchCase="'custom'">
-                  <h3 class="text-xl font-bold mb-4 section-divider text-white">{{ section.title || 'Section personnalisée' }}</h3>
+                  <h3 class="text-xl font-bold mb-4 section-divider text-white" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">{{ section.title || 'Section personnalisée' }}</h3>
                   <div class="bg-white bg-opacity-20 rounded p-4 text-white flex items-center justify-center min-h-[60px]">
                     <ng-container *ngIf="section.data?.content; else customPlaceholder">
                       <div [innerHTML]="section.data.content"></div>
@@ -274,10 +270,6 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               (drop)="onDrop($event, section.id, 'right')"
               (dragend)="onDragEnd()">
             
-            <!-- Indicateur de sélection -->
-            <div *ngIf="cvService.selectedSection() === section.id" 
-                class="absolute -left-1 top-0 bottom-0 w-1 bg-purple-500 rounded-r"></div>
-            
             <!-- Section controls -->
             <div *ngIf="hoveredSection === section.id && !isPrinting" 
                 class="section-controls absolute -top-2 -right-2 z-10">
@@ -299,7 +291,8 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               <div *ngSwitchCase="'profile'">
                 <h2 class="text-3xl font-bold mb-4 section-divider" 
                     [style.color]="currentCV()?.theme?.primaryColor"
-                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading"
+                    [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 1.1">
                   PROFIL PROFESSIONNEL
                 </h2>
                 <p class="text-gray-700 leading-relaxed">
@@ -311,7 +304,8 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               <div *ngSwitchCase="'experience'">
                 <h3 class="text-2xl font-bold mb-6 section-divider" 
                     [style.color]="currentCV()?.theme?.primaryColor"
-                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading"
+                    [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 1.1">
                   EXPÉRIENCE PROFESSIONNELLE
                 </h3>
                 <div class="space-y-6">
@@ -323,7 +317,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                     </button>
                     <div class="p-4 rounded-lg" [style.background-color]="currentCV()?.theme?.backgroundColor">
                       <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor">
+                        <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor" [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 0.9">
                           {{ exp.title }}
                         </h4>
                         <span class="px-3 py-1 rounded-full text-sm font-medium"
@@ -361,7 +355,8 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
               <div *ngSwitchCase="'education'">
                 <h3 class="text-2xl font-bold mb-6 section-divider" 
                     [style.color]="currentCV()?.theme?.primaryColor"
-                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                    [style.font-family]="currentCV()?.theme?.fontFamily?.heading"
+                    [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 1.1">
                   FORMATION ACADÉMIQUE
                 </h3>
                 <div class="space-y-6">
@@ -373,7 +368,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
                     </button>
                     <div class="p-4 rounded-lg" [style.background-color]="currentCV()?.theme?.backgroundColor">
                       <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor">
+                        <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor" [style.font-size.px]="(currentCV()?.layout?.fontSize?.heading ?? 0) * 0.9">
                           {{ edu.degree }}
                         </h4>
                         <span class="px-3 py-1 rounded-full text-sm font-medium"
@@ -480,7 +475,7 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      height: 70%;
+      height: 50%;
       width: 4px;
       background: currentColor;
       border-radius: 2px;
@@ -1053,14 +1048,26 @@ export class CVPreviewComponent implements AfterViewInit {
   }
 
   adjustFontSize(delta: number): void {
-    const currentSize = this.currentCV()?.layout.fontSize.body ?? 14;
-    const newSize = Math.max(10, Math.min(20, currentSize + delta));
-    
+    const currentCV = this.currentCV();
+    if (!currentCV) return;
+
+    const currentBodySize = currentCV.layout.fontSize.body;
+    const currentHeadingSize = currentCV.layout.fontSize.heading;
+
+    // Ajustez les tailles avec des limites raisonnables
+    const newBodySize = Math.max(10, Math.min(20, currentBodySize + delta));
+    const newHeadingSize = Math.max(14, Math.min(28, currentHeadingSize + delta));
+
+    // Mettez à jour le state
     this.cvService.resizeElement({
       elementId: 'fontSize',
       width: 0,
       height: 0,
-      fontSize: newSize
+      fontSize: {
+        body: newBodySize,
+        heading: newHeadingSize,
+        small: Math.max(8, Math.min(16, currentCV.layout.fontSize.small + delta)),
+      },
     });
   }
 

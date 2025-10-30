@@ -104,31 +104,44 @@ export class CVStateService {
     this.saveToStorage();
   }
 
-  // Export functionality
+  // Export functionality from service
   async exportToPDF(): Promise<void> {
     const { jsPDF } = await import('jspdf');
     const html2canvas = (await import('html2canvas')).default;
-    
+
     const element = document.querySelector('.cv-preview-container') as HTMLElement;
     if (!element) return;
 
     try {
+      // Ajoutez la classe capture-mode pour réinitialiser les styles
+      element.classList.add('capture-mode');
+
+      // Capturez avec des options optimisées
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
+        logging: true,
       });
+
+      // Retirez la classe après la capture
+      element.classList.remove('capture-mode');
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
+
       const imgWidth = 210;
       const pageHeight = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
-
-      let position = 0;
+      let position = 0; // Pas de décalage initial
 
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -145,6 +158,7 @@ export class CVStateService {
       pdf.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
+      throw error;
     }
   }
 
@@ -305,11 +319,14 @@ export class CVStateService {
     if (resizeData.elementId === 'layout') {
       currentCV.layout.leftColumnWidth = resizeData.width;
       currentCV.layout.rightColumnWidth = 100 - resizeData.width;
-    } else if (resizeData.elementId === 'fontSize') {
+    }
+    else if (resizeData.elementId === 'fontSize') {
       if (resizeData.fontSize) {
-        currentCV.layout.fontSize.body = resizeData.fontSize;
-        currentCV.layout.fontSize.heading = resizeData.fontSize * 1.5;
-        currentCV.layout.fontSize.small = resizeData.fontSize * 0.85;
+        // Mise à jour des tailles de police avec les valeurs fournies
+        currentCV.layout.fontSize = {
+          ...currentCV.layout.fontSize,
+          ...resizeData.fontSize,
+        };
       }
     }
 

@@ -166,8 +166,13 @@ export interface ResizeData {
   elementId: string;
   width: number;
   height: number;
-  fontSize?: number;
+  fontSize?: {
+    body: number;
+    heading: number;
+    small: number;
+  };
 }
+
 
 export interface HelpTip {
   id: string;
