@@ -1,12 +1,13 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, inject, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CVStateService } from '../../services/cv-state.service';
 import { ThemeService } from '../../services/theme.service';
 import { CVPreviewComponent } from '../cv-preview/cv-preview.component';
+import { CvTemplateSelectorComponent } from '../home/components/cv-template-selector/cv-template-selector.component';
 import { SectionEditorComponent } from '../section-editor/section-editor.component';
 import { StyleEditorComponent } from '../style-editor/style-editor.component';
-import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-cv-builder',
@@ -15,7 +16,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
     CommonModule,
     CVPreviewComponent,
     StyleEditorComponent,
-    SectionEditorComponent
+    SectionEditorComponent,
+    CvTemplateSelectorComponent
   ],
   animations: [
     trigger('slideInRight', [
@@ -415,6 +417,9 @@ import { trigger, transition, style, animate } from '@angular/animations';
         </div>
       </div>
     </div>
+    <app-cv-template-selector 
+      (templateSelected)="onTemplateSelected($event)">
+    </app-cv-template-selector>
   `
 })
 export class CVBuilderComponent implements OnInit {
@@ -565,6 +570,11 @@ export class CVBuilderComponent implements OnInit {
 
   toggleStyleEditor(): void {
     this.showStyleEditor = !this.showStyleEditor;
+  }
+
+  onTemplateSelected(templateId: string) {
+    console.log('Template sélectionné:', templateId);
+    // Logique de sélection
   }
 
   toggleHelp(): void {

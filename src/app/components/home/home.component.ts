@@ -398,7 +398,6 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
           </div>
         </div>
       </section>
-
       <!-- Footer -->
       <footer class="border-t border-white/10 py-16 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -466,6 +465,11 @@ export class HomeComponent {
       this.scrollProgress = scrolled;
       this.isScrolled = window.scrollY > 50;
     });
+  }
+  
+  onTemplateSelected(templateId: string) {
+    console.log('Template sélectionné:', templateId);
+    // Logique de sélection
   }
 
   startNewCV(): void {
