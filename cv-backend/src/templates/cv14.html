@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Modèle Professionnel</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #f8f6f0;
+            padding: 20px 0;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 210mm;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+        }
+
+        .header {
+            color: white;
+            text-align: center;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c2c 50%, #5a8c3a 100%);
+            padding: 30px 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 4px);
+            opacity: 0.5;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6ba83e 0%, #4a7c2c 50%, #6ba83e 100%);
+        }
+
+        .logo {
+            display: inline-block;
+            border: 2px solid white;
+            padding: 6px 14px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: rgba(255,255,255,0.15);
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+        }
+
+        .name {
+            font-size: 26px;
+            font-weight: bold;
+            margin: 12px 0 8px 0;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+
+        .title {
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #d4e7c5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            display: flex;
+        }
+
+        .left-column {
+            flex: 2;
+            padding: 30px 35px;
+        }
+
+        .right-column {
+            flex: 1;
+            background: #f5f3ed;
+            padding: 30px 25px;
+            border-left: 3px solid #4a7c2c;
+        }
+
+        .section {
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #d4e7c5;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            color: #2d5016;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            border-left: 4px solid #4a7c2c;
+            padding-left: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .experience-item {
+            margin-bottom: 20px;
+            padding-left: 18px;
+            border-left: 3px solid #d4e7c5;
+            position: relative;
+        }
+
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            background: #4a7c2c;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .experience-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .job-title {
+            font-weight: bold;
+            color: #2d5016;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .location {
+            font-style: italic;
+            color: #5a6c52;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .date {
+            font-size: 13px;
+            color: #7a8c72;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        ul {
+            padding-left: 22px;
+            margin-top: 8px;
+        }
+
+        li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #444;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+
+        .contact-item i {
+            color: #4a7c2c;
+            width: 18px;
+            font-size: 14px;
+        }
+
+        .education-item {
+            margin-bottom: 14px;
+            padding: 12px;
+            background: rgba(212, 231, 197, 0.25);
+            border-radius: 6px;
+            border-left: 3px solid #4a7c2c;
+        }
+
+        .education-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .education-item .date {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .education-item .job-title {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .education-item .location {
+            font-size: 13px;
+        }
+
+        .progress {
+            background-color: #e0e0d8;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4a7c2c 0%, #6ba83e 100%);
+            height: 100%;
+        }
+
+        .skill-item {
+            margin-bottom: 12px;
+        }
+
+        .skill-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d5016;
+            margin-bottom: 5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .right-column {
+                border-left: none;
+                border-top: 3px solid #4a7c2c;
+            }
+
+            .left-column,
+            .right-column {
+                padding: 25px;
+            }
+        }
+
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .header {
+                padding: 25px 20px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .header::before,
+            .header::after {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .left-column {
+                padding: 25px 30px;
+            }
+
+            .right-column {
+                padding: 25px 20px;
+                background: #f5f3ed;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .section {
+                page-break-inside: avoid;
+                margin-bottom: 22px;
+                padding-bottom: 16px;
+            }
+
+            .experience-item,
+            .education-item {
+                page-break-inside: avoid;
+            }
+
+            /* Ensure colors are printed */
+            .section-title,
+            .job-title,
+            .contact-item i,
+            .experience-item::before {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .progress-bar {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- EN-TÊTE -->
+    <div class="header">
+        <div class="logo">LOGO</div>
+        <div class="name">Nom Prénom</div>
+        <div class="title">Titre Professionnel</div>
+    </div>
+
+    <div class="main-content">
+
+        <!-- COLONNE GAUCHE -->
+        <div class="left-column">
+
+            <div class="section">
+                <div class="section-title">Profil</div>
+                <p>Professionnel(le) expérimenté(e) et motivé(e), doté(e) d'une solide expertise dans mon domaine. Capacité démontrée à gérer des projets complexes, à travailler en équipe et à atteindre des objectifs ambitieux avec rigueur et efficacité.</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Expérience Professionnelle</div>
+
+                <div class="experience-item">
+                    <div class="job-title">Chef de Projet Senior</div>
+                    <div class="location">Nom de l'entreprise</div>
+                    <div class="date">2020 - Présent</div>
+                    <ul>
+                        <li>Pilotage de projets stratégiques et coordination d'équipes multidisciplinaires</li>
+                        <li>Optimisation des processus et amélioration continue des performances</li>
+                        <li>Gestion budgétaire et reporting auprès de la direction</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="job-title">Responsable Opérationnel</div>
+                    <div class="location">Nom de l'entreprise</div>
+                    <div class="date">2017 - 2020</div>
+                    <ul>
+                        <li>Supervision des activités quotidiennes et gestion d'équipe</li>
+                        <li>Mise en place d'indicateurs de performance (KPI)</li>
+                        <li>Collaboration étroite avec les parties prenantes internes et externes</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="job-title">Assistant de Gestion</div>
+                    <div class="location">Nom de l'entreprise</div>
+                    <div class="date">2014 - 2017</div>
+                    <ul>
+                        <li>Support administratif et gestion documentaire</li>
+                        <li>Coordination des plannings et organisation d'événements</li>
+                        <li>Assistance à la direction dans les tâches quotidiennes</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="section">
+                <div class="section-title">Compétences</div>
+                <ul>
+                    <li>Gestion de projet et planification stratégique</li>
+                    <li>Leadership et management d'équipe</li>
+                    <li>Analyse de données et reporting</li>
+                    <li>Communication interpersonnelle et négociation</li>
+                    <li>Résolution de problèmes complexes</li>
+                    <li>Maîtrise des outils bureautiques (Office, Excel, PowerPoint)</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Centres d'Intérêt</div>
+                <ul>
+                    <li>Voyages et découverte de nouvelles cultures</li>
+                    <li>Sport et activités de plein air</li>
+                    <li>Lecture et veille technologique</li>
+                    <li>Bénévolat associatif</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- COLONNE DROITE -->
+        <div class="right-column">
+
+            <div class="section">
+                <div class="section-title">Contact</div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>email@domain.com</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+33 6 00 00 00 00</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Ville, Pays</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fab fa-linkedin"></i>
+                    <span>linkedin.com/in/profil</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Formation</div>
+
+                <div class="education-item">
+                    <div class="date">2012 - 2014</div>
+                    <div class="job-title">Master en Management</div>
+                    <div class="location">École de Commerce</div>
+                </div>
+
+                <div class="education-item">
+                    <div class="date">2009 - 2012</div>
+                    <div class="job-title">Licence en Économie</div>
+                    <div class="location">Université</div>
+                </div>
+
+            </div>
+
+            <div class="section">
+                <div class="section-title">Langues</div>
+                
+                <div class="skill-item">
+                    <div class="skill-name">Français — Natif</div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="skill-item">
+                    <div class="skill-name">Anglais — Avancé</div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 85%"></div>
+                    </div>
+                </div>
+
+                <div class="skill-item">
+                    <div class="skill-name">Espagnol — Intermédiaire</div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Certifications</div>
+                
+                <div class="education-item">
+                    <div class="date">2023</div>
+                    <div class="job-title">PMP Certification</div>
+                    <div class="location">Project Management Institute</div>
+                </div>
+
+                <div class="education-item">
+                    <div class="date">2021</div>
+                    <div class="job-title">Agile Scrum Master</div>
+                    <div class="location">Organisme certifiant</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

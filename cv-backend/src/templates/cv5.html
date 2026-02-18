@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CV - Modèle Moderne</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #f2f2f2;
+    margin: 0;
+    padding: 30px;
+}
+
+.cv-container {
+    max-width: 1000px;
+    margin: auto;
+    background: #fff;
+    display: flex;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+/* COLONNE GAUCHE */
+.left-column {
+    width: 35%;
+    padding: 30px;
+    border-right: 2px solid #eee;
+}
+
+.photo img {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 25px;
+}
+
+.block {
+    margin-bottom: 30px;
+}
+
+.block h3 {
+    color: #1e73be;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.block p {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.block ul {
+    padding-left: 18px;
+}
+
+.block li {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* COLONNE DROITE */
+.right-column {
+    width: 65%;
+    padding: 40px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+header h2 {
+    margin: 5px 0 30px;
+    color: #1e73be;
+    font-weight: normal;
+}
+
+.content-block {
+    margin-bottom: 40px;
+}
+
+.content-block h3 {
+    color: #1e73be;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+.item {
+    display: flex;
+    margin-bottom: 25px;
+}
+
+.date {
+    width: 120px;
+    font-size: 13px;
+    color: #777;
+}
+
+.details h4 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.details strong {
+    font-size: 14px;
+}
+
+.details p {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+@media print{
+            body{
+                padding:0;
+                background:#fff;
+            }
+            
+            .container{
+                box-shadow:none;
+                max-width:100%;
+                margin: 0px;
+            }
+            
+            .header{
+                height:240px;
+            }
+            
+            .cv{
+                padding:30px 0;
+            }
+        }
+</style>
+</head>
+
+<body>
+
+<div class="cv-container">
+
+    <!-- COLONNE GAUCHE -->
+    <aside class="left-column">
+
+        <div class="photo">
+            <!-- remplace modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif -->
+            <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo de profil">
+        </div>
+
+        <section class="block">
+            <h3>PROFIL</h3>
+            <p><strong>Adresse</strong><br>Mon adresse postale</p>
+            <p><strong>E-mail</strong><br>votremail@gmail.com</p>
+            <p><strong>Téléphone</strong><br>01 02 03 04 05</p>
+            <p><strong>Date de naissance</strong><br>24/05/1995</p>
+        </section>
+
+        <section class="block">
+            <h3>COMPÉTENCES</h3>
+            <ul>
+                <li>Ma compétence</li>
+                <li>Ma compétence</li>
+                <li>Ma compétence</li>
+                <li>Ma compétence</li>
+            </ul>
+        </section>
+
+        <section class="block">
+            <h3>LOISIRS</h3>
+            <ul>
+                <li>Mon loisir</li>
+                <li>Mon loisir</li>
+                <li>Mon loisir</li>
+            </ul>
+        </section>
+
+    </aside>
+
+    <!-- COLONNE DROITE -->
+    <main class="right-column">
+
+        <header>
+            <h1>NOM PRÉNOM</h1>
+            <h2>MÉTIER</h2>
+        </header>
+
+        <section class="content-block">
+            <h3><i class="fas fa-briefcase"></i> EXPÉRIENCES</h3>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>POSTE DE L’EXPÉRIENCE - ENTREPRISE</h4>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est.</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>POSTE DE L’EXPÉRIENCE - ENTREPRISE</h4>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>POSTE DE L’EXPÉRIENCE - ENTREPRISE</h4>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-block">
+            <h3><i class="fas fa-graduation-cap"></i> FORMATIONS</h3>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>DIPLÔME</h4>
+                    <strong>ÉTABLISSEMENT</strong>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>DIPLÔME</h4>
+                    <strong>ÉTABLISSEMENT</strong>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>DIPLÔME</h4>
+                    <strong>ÉTABLISSEMENT</strong>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="date">sept 2016<br>août 2018</div>
+                <div class="details">
+                    <h4>DIPLÔME</h4>
+                    <strong>ÉTABLISSEMENT</strong>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

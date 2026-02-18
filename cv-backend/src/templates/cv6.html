@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CV – Modèle Classique</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body{
+    margin:0;
+    padding:30px;
+    background:#f2f2f2;
+}
+
+.cv{
+    max-width:1100px;
+    margin:auto;
+    background:#fff;
+    border:1px solid #ddd;
+}
+
+/* ===== HEADER ===== */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:40px;
+    border-bottom:2px solid #ccc;
+}
+
+.header-left h1{
+    margin:0;
+    font-size:36px;
+}
+
+.header-left h2{
+    margin:8px 0 0;
+    font-size:18px;
+    font-weight:normal;
+    color:#555;
+}
+
+.header-right img{
+    width:140px;
+    height:140px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+/* ===== CONTENU ===== */
+.content{
+    display:flex;
+}
+
+/* ===== COLONNE GAUCHE ===== */
+.left{
+    width:32%;
+    padding:30px;
+    border-right:2px solid #ccc;
+}
+
+.section{
+    margin-bottom:35px;
+}
+
+.section-title{
+    font-weight:bold;
+    margin-bottom:20px;
+    font-size:16px;
+}
+
+.info{
+    display:flex;
+    align-items:flex-start;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+.info i{
+    width:30px;
+    height:30px;
+    background:#000;
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:12px;
+    font-size:14px;
+}
+
+.list{
+    list-style:none;
+    padding-left:0;
+    margin:0;
+}
+
+.list li{
+    margin-bottom:8px;
+    font-size:14px;
+}
+
+/* ===== COLONNE DROITE ===== */
+.right{
+    width:68%;
+    padding:30px 40px;
+}
+
+.block{
+    margin-bottom:35px;
+}
+
+.block h3{
+    margin:0 0 20px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.block-line{
+    border-top:2px solid #ccc;
+    margin:35px 0;
+}
+
+.exp{
+    display:flex;
+    margin-bottom:25px;
+}
+
+.exp-date{
+    width:130px;
+    font-size:14px;
+    color:#444;
+}
+
+.exp-content h4{
+    margin:0;
+    font-size:15px;
+}
+
+.exp-content p{
+    margin:6px 0 0;
+    font-size:14px;
+    color:#555;
+    line-height:1.5;
+}
+
+@media print{
+            body{
+                padding:0;
+                background:#fff;
+            }
+            
+            .container{
+                box-shadow:none;
+                max-width:100%;
+                margin: 0px;
+            }
+            
+            .header{
+                height:240px;
+            }
+            
+            .cv{
+                padding:30px 0;
+            }
+        }
+</style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Nom Prénom</h1>
+            <h2>Métier</h2>
+        </div>
+        <div class="header-right">
+            <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo">
+            </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="content">
+
+        <!-- GAUCHE -->
+        <aside class="left">
+
+            <div class="section">
+                <div class="section-title">PROFIL</div>
+
+                <div class="info">
+                    <i class="fas fa-location-dot"></i>
+                    <div>
+                        <strong>Adresse</strong><br>
+                        Mon adresse postale
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <strong>Email</strong><br>
+                        exemple@gmail.com
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <strong>Téléphone</strong><br>
+                        06 01 02 03 04
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-calendar"></i>
+                    <div>
+                        <strong>Date de naissance</strong><br>
+                        24/05/1995
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-id-card"></i>
+                    <div>
+                        <strong>Permis</strong><br>
+                        B
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">COMPÉTENCES</div>
+                <ul class="list">
+                    <li>– Compétence 1</li>
+                    <li>– Compétence 2</li>
+                    <li>– Compétence 3</li>
+                    <li>– Compétence 4</li>
+                    <li>– Compétence 5</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">LOISIRS</div>
+                <ul class="list">
+                    <li>– Loisir 1</li>
+                    <li>– Loisir 2</li>
+                    <li>– Loisir 3</li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <!-- DROITE -->
+        <main class="right">
+
+            <div class="block">
+                <h3>À PROPOS DE MOI</h3>
+                <p style="font-size:14px;color:#555;">
+                    Forte de près de 15 ans d’expérience dans le domaine du Fund Administration.
+                </p>
+            </div>
+
+            <div class="block-line"></div>
+
+            <div class="block">
+                <h3>EXPÉRIENCES PROFESSIONNELLES</h3>
+
+                <div class="exp">
+                    <div class="exp-date">Avril 2019<br>Juin 2020</div>
+                    <div class="exp-content">
+                        <h4>Poste occupé – Entreprise</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">Février 2017<br>Décembre 2017</div>
+                    <div class="exp-content">
+                        <h4>Poste occupé – Entreprise</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">Février 2015<br>Octobre 2016</div>
+                    <div class="exp-content">
+                        <h4>Poste occupé – Entreprise</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block-line"></div>
+
+            <div class="block">
+                <h3>FORMATIONS</h3>
+
+                <div class="exp">
+                    <div class="exp-date">2020</div>
+                    <div class="exp-content">
+                        <h4>Diplôme – Établissement</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">2018</div>
+                    <div class="exp-content">
+                        <h4>Diplôme – Établissement</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+</body>
+</html>

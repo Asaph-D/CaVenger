@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CVStateService } from '../../../services/cv-state.service';
 import { ThemeService } from '../../../services/theme.service';
+import { ModalService } from '../../../services/modal.service';
 import { Skill } from '../../../models/cv.interface';
+import { canAddItem, canRemoveItem, getMaxItems, getMinItems } from '../../../config/section-limits.config';
 
 @Component({
   selector: 'app-skills-editor',
@@ -12,10 +14,18 @@ import { Skill } from '../../../models/cv.interface';
   template: `
     <div class="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       <div class="flex items-center justify-between mb-6">
-        <h4 class="text-lg font-semibold">Compétences</h4>
+        <div>
+          <h4 class="text-lg font-semibold">Compétences</h4>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ skills.length }} / {{ getMaxItems('skills') }} compétences
+          </p>
+        </div>
         <button
           (click)="addSkill()"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+          [disabled]="!canAdd()"
+          [class.opacity-50]="!canAdd()"
+          [class.cursor-not-allowed]="!canAdd()"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fas fa-plus mr-2"></i>
           Ajouter
         </button>
@@ -134,6 +144,7 @@ import { Skill } from '../../../models/cv.interface';
 export class SkillsEditorComponent {
   private cvService = inject(CVStateService);
   private themeService = inject(ThemeService);
+  private modalService = inject(ModalService);
 
   get skills(): Skill[] {
     return this.cvService.currentCV()?.skills || [];
@@ -155,6 +166,13 @@ export class SkillsEditorComponent {
   ];
 
   addSkill(): void {
+    if (!this.canAdd()) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('skills')} compétences.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     this.cvService.addSkill({
       name: 'Nouvelle compétence',
       level: 50,
@@ -164,6 +182,13 @@ export class SkillsEditorComponent {
   }
 
   addSuggestedSkill(suggestion: any): void {
+    if (!this.canAdd()) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('skills')} compétences.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     const exists = this.skills.some(skill =>
       skill.name.toLowerCase() === suggestion.name.toLowerCase()
     );
@@ -199,5 +224,21 @@ export class SkillsEditorComponent {
 
   trackBySkillId(index: number, skill: Skill): string {
     return skill.id;
+  }
+
+  canAdd(): boolean {
+    return canAddItem('skills', this.skills.length);
+  }
+
+  canRemove(): boolean {
+    return canRemoveItem('skills', this.skills.length);
+  }
+
+  getMaxItems(sectionType: string): number {
+    return getMaxItems(sectionType);
+  }
+
+  getMinItems(sectionType: string): number {
+    return getMinItems(sectionType);
   }
 }

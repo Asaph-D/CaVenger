@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV – Modèle Classique Premium</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f2f2f2;
+    padding:20px 0;
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+.cv{
+    max-width:210mm;
+    margin:auto;
+    background:#fff;
+    box-shadow:0 10px 40px rgba(0,0,0,.12);
+    position:relative;
+    overflow:hidden;
+}
+
+/* ===== SVG DECORATION ===== */
+.decoration-svg{
+    position:absolute;
+    top:0;
+    right:0;
+    width:350px;
+    height:300px;
+    pointer-events:none;
+    z-index:1;
+    opacity:0.08;
+}
+
+/* ===== HEADER ===== */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:30px 35px;
+    border-bottom:3px solid #000;
+    position:relative;
+    z-index:2;
+    background:#fff;
+}
+
+.header::after{
+    content:"";
+    position:absolute;
+    bottom:-3px;
+    left:0;
+    width:200px;
+    height:3px;
+    background:linear-gradient(90deg, #333 0%, transparent 100%);
+}
+
+.header-left h1{
+    margin:0;
+    font-size:32px;
+    font-weight:700;
+    letter-spacing:1px;
+}
+
+.header-left h2{
+    margin:10px 0 0;
+    font-size:17px;
+    font-weight:500;
+    color:#555;
+    letter-spacing:0.5px;
+}
+
+.header-right{
+    position:relative;
+}
+
+.header-right::before{
+    content:"";
+    position:absolute;
+    inset:-8px;
+    border-radius:50%;
+    background:linear-gradient(135deg, #000 0%, #333 100%);
+    z-index:-1;
+}
+
+.header-right img{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    border:4px solid #fff;
+    display:block;
+}
+
+/* ===== CONTENU ===== */
+.content{
+    display:flex;
+    position:relative;
+    z-index:2;
+}
+
+/* ===== COLONNE GAUCHE ===== */
+.left{
+    width:35%;
+    padding:30px 25px;
+    background:linear-gradient(180deg, #f9f9f9 0%, #f5f5f5 100%);
+    border-right:3px solid #e0e0e0;
+}
+
+.section{
+    margin-bottom:30px;
+}
+
+.section:last-child{
+    margin-bottom:0;
+}
+
+.section-title{
+    font-weight:700;
+    margin-bottom:18px;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    position:relative;
+    padding-bottom:8px;
+}
+
+.section-title::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:50px;
+    height:3px;
+    background:#000;
+}
+
+.info{
+    display:flex;
+    align-items:flex-start;
+    margin-bottom:14px;
+    font-size:13px;
+}
+
+.info i{
+    width:28px;
+    height:28px;
+    background:#000;
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:12px;
+    font-size:13px;
+    flex-shrink:0;
+}
+
+.info div{
+    padding-top:2px;
+}
+
+.info strong{
+    display:block;
+    font-size:12px;
+    margin-bottom:3px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+}
+
+.list{
+    list-style:none;
+    padding-left:0;
+}
+
+.list li{
+    margin-bottom:10px;
+    font-size:13px;
+    padding-left:20px;
+    position:relative;
+    line-height:1.5;
+}
+
+.list li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:7px;
+    width:8px;
+    height:8px;
+    background:#000;
+    transform:rotate(45deg);
+}
+
+/* ===== COLONNE DROITE ===== */
+.right{
+    width:65%;
+    padding:30px 35px;
+}
+
+.block{
+    margin-bottom:35px;
+}
+
+.block:last-child{
+    margin-bottom:0;
+}
+
+.block h3{
+    margin:0 0 20px;
+    font-size:15px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    position:relative;
+    padding-bottom:10px;
+}
+
+.block h3::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:60px;
+    height:3px;
+    background:#000;
+}
+
+.block-line{
+    border:none;
+    border-top:2px solid #e0e0e0;
+    margin:30px 0;
+}
+
+.exp{
+    display:flex;
+    margin-bottom:22px;
+    position:relative;
+    padding-left:18px;
+}
+
+.exp:last-child{
+    margin-bottom:0;
+}
+
+.exp::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:6px;
+    width:10px;
+    height:10px;
+    background:#000;
+    border-radius:50%;
+}
+
+.exp-date{
+    width:120px;
+    font-size:13px;
+    color:#444;
+    font-weight:600;
+    flex-shrink:0;
+    padding-top:2px;
+}
+
+.exp-content h4{
+    margin:0 0 6px;
+    font-size:14px;
+    font-weight:700;
+    color:#222;
+    line-height:1.3;
+}
+
+.exp-content p{
+    margin:0;
+    font-size:13px;
+    color:#555;
+    line-height:1.6;
+}
+
+.about-text{
+    font-size:13px;
+    color:#555;
+    line-height:1.7;
+    margin:0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px){
+    .content{
+        flex-direction:column;
+    }
+    
+    .left, .right{
+        width:100%;
+        border:none;
+    }
+    
+    .left{
+        padding:25px;
+        border-bottom:3px solid #e0e0e0;
+    }
+    
+    .header{
+        flex-direction:column-reverse;
+        text-align:center;
+        gap:20px;
+    }
+    
+    .header::after{
+        left:50%;
+        transform:translateX(-50%);
+    }
+}
+
+/* ===== PRINT OPTIMIZATION ===== */
+@media print{
+    body{
+        padding:0;
+        background:#fff;
+    }
+    
+    .cv{
+        box-shadow:none;
+        max-width:100%;
+    }
+    
+    .header,
+    .left,
+    .right{
+        padding:25px 30px;
+    }
+    
+    .section{
+        page-break-inside:avoid;
+    }
+    
+    .exp,
+    .block{
+        page-break-inside:avoid;
+    }
+    
+    .left{
+        background:#f9f9f9;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+    }
+    
+    .section-title::after,
+    .block h3::after,
+    .info i,
+    .list li::before,
+    .exp::before{
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+    }
+    
+    .decoration-svg{
+        display:none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- SVG DECORATION -->
+    <div class="decoration-svg">
+        <svg viewBox="0 0 350 300" preserveAspectRatio="xMaxYMin meet">
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#000;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#333;stop-opacity:0.8" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Formes géométriques -->
+            <circle cx="280" cy="80" r="60" fill="url(#grad1)"/>
+            <circle cx="220" cy="150" r="40" fill="#000" opacity="0.7"/>
+            <circle cx="310" cy="180" r="30" fill="#333" opacity="0.6"/>
+            
+            <!-- Lignes abstraites -->
+            <path d="M0,50 Q100,100 200,80 T350,100" stroke="#000" stroke-width="3" fill="none" opacity="0.4"/>
+            <path d="M50,150 Q150,180 250,160 T350,200" stroke="#333" stroke-width="2" fill="none" opacity="0.3"/>
+            
+            <!-- Rectangles -->
+            <rect x="250" y="220" width="80" height="60" fill="#000" opacity="0.5" rx="5"/>
+            <rect x="200" y="240" width="40" height="40" fill="#333" opacity="0.4" rx="3"/>
+        </svg>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Nom Prénom</h1>
+            <h2>Métier / Spécialisation</h2>
+        </div>
+        <div class="header-right">
+            <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo de profil">
+        </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="content">
+
+        <!-- GAUCHE -->
+        <aside class="left">
+
+            <div class="section">
+                <div class="section-title">Profil</div>
+
+                <div class="info">
+                    <i class="fas fa-location-dot"></i>
+                    <div>
+                        <strong>Adresse</strong>
+                        123 Rue Example<br>75001 Paris, France
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <strong>Email</strong>
+                        exemple@gmail.com
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <strong>Téléphone</strong>
+                        +33 6 01 02 03 04
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-calendar"></i>
+                    <div>
+                        <strong>Date de naissance</strong>
+                        24 Mai 1995
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fas fa-id-card"></i>
+                    <div>
+                        <strong>Permis</strong>
+                        Permis B
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fab fa-linkedin"></i>
+                    <div>
+                        <strong>LinkedIn</strong>
+                        linkedin.com/in/profil
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Compétences</div>
+                <ul class="list">
+                    <li>Gestion de projet</li>
+                    <li>Leadership d'équipe</li>
+                    <li>Analyse de données</li>
+                    <li>Communication</li>
+                    <li>Organisation</li>
+                    <li>Résolution de problèmes</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Langues</div>
+                <ul class="list">
+                    <li>Français — Natif</li>
+                    <li>Anglais — Avancé</li>
+                    <li>Espagnol — Intermédiaire</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Loisirs</div>
+                <ul class="list">
+                    <li>Voyages et découvertes</li>
+                    <li>Photographie</li>
+                    <li>Sports collectifs</li>
+                    <li>Lecture</li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <!-- DROITE -->
+        <main class="right">
+
+            <div class="block">
+                <h3>À propos de moi</h3>
+                <p class="about-text">
+                    Professionnel(le) dynamique et polyvalent(e), fort(e) de plus de 15 ans d'expérience 
+                    dans le domaine du Fund Administration. Reconnu(e) pour ma rigueur, mon sens de 
+                    l'organisation et ma capacité à gérer des projets complexes en environnement 
+                    multiculturel. Passionné(e) par l'innovation et l'amélioration continue.
+                </p>
+            </div>
+
+            <div class="block-line"></div>
+
+            <div class="block">
+                <h3>Expériences professionnelles</h3>
+
+                <div class="exp">
+                    <div class="exp-date">Avril 2019<br>Juin 2024</div>
+                    <div class="exp-content">
+                        <h4>Responsable Fund Administration – Entreprise XYZ</h4>
+                        <p>Pilotage des opérations quotidiennes, coordination des équipes et optimisation 
+                        des processus de reporting. Gestion d'un portefeuille de clients internationaux avec 
+                        un volume d'actifs sous gestion de plus de 500M€.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">Février 2017<br>Mars 2019</div>
+                    <div class="exp-content">
+                        <h4>Gestionnaire Senior – Entreprise ABC</h4>
+                        <p>Supervision des activités de comptabilité et de valorisation des fonds. 
+                        Mise en place d'indicateurs de performance et amélioration de la qualité de service.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">Février 2015<br>Janvier 2017</div>
+                    <div class="exp-content">
+                        <h4>Assistant Fund Administrator – Entreprise DEF</h4>
+                        <p>Support opérationnel dans la gestion administrative des fonds d'investissement. 
+                        Participation aux processus de valorisation et reporting réglementaire.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">Janvier 2010<br>Décembre 2014</div>
+                    <div class="exp-content">
+                        <h4>Chargé de Clientèle – Banque GHI</h4>
+                        <p>Gestion d'un portefeuille de clients professionnels. Conseil en gestion 
+                        patrimoniale et suivi des investissements.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block-line"></div>
+
+            <div class="block">
+                <h3>Formations</h3>
+
+                <div class="exp">
+                    <div class="exp-date">2020</div>
+                    <div class="exp-content">
+                        <h4>Certification CAIA – Chartered Alternative Investment Analyst</h4>
+                        <p>Spécialisation en investissements alternatifs et gestion de fonds.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">2008 - 2010</div>
+                    <div class="exp-content">
+                        <h4>Master Finance de Marché – École Supérieure de Commerce</h4>
+                        <p>Formation spécialisée en finance, marchés financiers et gestion d'actifs.</p>
+                    </div>
+                </div>
+
+                <div class="exp">
+                    <div class="exp-date">2005 - 2008</div>
+                    <div class="exp-content">
+                        <h4>Licence Économie et Gestion – Université Paris-Dauphine</h4>
+                        <p>Formation générale en économie, gestion et finance d'entreprise.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+</body>
+</html>

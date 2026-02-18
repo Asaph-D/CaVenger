@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Modèle Générique</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f6f0;
+        }
+
+        .container {
+            margin: 30px auto;
+            max-width: 1000px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            color: white;
+            text-align: center;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c2c 100%);
+            padding: 40px 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 4px);
+            opacity: 0.5;
+        }
+
+        .logo {
+            display: inline-block;
+            border: 2px solid white;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .name {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+        }
+
+        .title {
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #d4e7c5;
+        }
+
+        .main-content {
+            display: flex;
+        }
+
+        .left-column {
+            flex: 2;
+            padding: 40px;
+        }
+
+        .right-column {
+            flex: 1;
+            background: #f5f3ed;
+            padding: 40px 30px;
+            border-left: 3px solid #4a7c2c;
+        }
+
+        .section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #d4e7c5;
+        }
+
+        .section-title {
+            color: #2d5016;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-transform: uppercase;
+            border-left: 4px solid #4a7c2c;
+            padding-left: 15px;
+        }
+
+        .experience-item {
+            margin-bottom: 25px;
+            padding-left: 20px;
+            border-left: 2px solid #d4e7c5;
+        }
+
+        .job-title {
+            font-weight: bold;
+            color: #2d5016;
+        }
+
+        .location {
+            font-style: italic;
+            color: #5a6c52;
+        }
+
+        .date {
+            font-size: 14px;
+            color: #7a8c72;
+        }
+
+        ul {
+            padding-left: 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .contact-item i {
+            color: #4a7c2c;
+            width: 20px;
+        }
+
+        .education-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(212, 231, 197, 0.2);
+            border-radius: 5px;
+        }
+
+        .progress {
+            background-color: #e0e0d8;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4a7c2c 0%, #6ba83e 100%);
+            height: 100%;
+        }
+
+        @media print{
+            body{
+                padding:0;
+                background:#fff;
+            }
+            
+            .container{
+                box-shadow:none;
+                max-width:100%;
+                margin: 0px;
+            }
+            
+            .header{
+                height:140px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- EN-TÊTE -->
+    <div class="header">
+        <div class="logo">LOGO</div>
+        <div class="name">Nom Prénom</div>
+        <div class="title">Titre Professionnel</div>
+    </div>
+
+    <div class="main-content">
+
+        <!-- COLONNE GAUCHE -->
+        <div class="left-column">
+
+            <div class="section">
+                <div class="section-title">Profil</div>
+                <p>Description professionnelle générale. Résumé des compétences, objectifs et domaine d’expertise.</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Expérience Professionnelle</div>
+
+                <div class="experience-item">
+                    <div class="job-title">Poste Occupé</div>
+                    <div class="location">Nom de l’entreprise</div>
+                    <div class="date">Année - Année</div>
+                    <ul>
+                        <li>Responsabilité principale</li>
+                        <li>Mission ou réalisation clé</li>
+                        <li>Compétence développée</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="section">
+                <div class="section-title">Compétences</div>
+                <ul>
+                    <li>Compétence 1</li>
+                    <li>Compétence 2</li>
+                    <li>Compétence 3</li>
+                </ul>
+            </div>
+
+            <div class="section" style="border-bottom:none;">
+                <div class="section-title">Centres d’Intérêt</div>
+                <ul>
+                    <li>Loisir 1</li>
+                    <li>Loisir 2</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- COLONNE DROITE -->
+        <div class="right-column">
+
+            <div class="section">
+                <div class="section-title">Contact</div>
+                <div class="contact-item"><i class="fas fa-envelope"></i> email@domain.com</div>
+                <div class="contact-item"><i class="fas fa-phone"></i> +00 000 000 000</div>
+                <div class="contact-item"><i class="fas fa-map-marker-alt"></i> Ville, Pays</div>
+            </div>
+
+            <div class="section" style="border-bottom:none;">
+                <div class="section-title">Formation</div>
+
+                <div class="education-item">
+                    <div class="date">Année - Année</div>
+                    <div class="job-title">Diplôme ou Certification</div>
+                    <div class="location">Établissement</div>
+                </div>
+
+                <div class="education-item">
+                    <div class="date">Année - Année</div>
+                    <div class="job-title">Diplôme ou Certification</div>
+                    <div class="location">Établissement</div>
+                </div>
+
+                <div class="education-item">
+                    <div class="date">Année - Année</div>
+                    <div class="job-title">Diplôme ou Certification</div>
+                    <div class="location">Établissement</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

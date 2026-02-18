@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Design Pro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:#e8e8e8;
+    padding:20px 0;
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+.container{
+    max-width:210mm;
+    margin:0 auto;
+    background:#fff;
+    box-shadow:0 20px 60px rgba(0,0,0,.15);
+}
+
+/* ===== HEADER FULL WIDTH ===== */
+.header{
+    position:relative;
+    width:100%;
+    height:280px;
+    overflow:hidden;
+    color:#fff;
+}
+
+/* SVG background */
+.header svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+}
+
+.header-content{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    padding-top:30px;
+}
+
+/* photo */
+.avatar{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    overflow:hidden;
+    margin:0 auto 12px;
+    border:5px solid rgba(255,255,255,0.8);
+    box-shadow:0 8px 25px rgba(0,0,0,.3);
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* name */
+.header h1{
+    margin:8px 0 4px;
+    font-size:32px;
+    letter-spacing:2px;
+    font-weight:700;
+    text-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+
+.header h2{
+    margin:0;
+    font-size:15px;
+    font-weight:500;
+    opacity:.95;
+    letter-spacing:1px;
+}
+
+/* contact row */
+.header-infos{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:30px;
+    margin-top:20px;
+    font-size:13px;
+    opacity:.95;
+}
+
+.header-infos div{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.header-infos i{
+    font-size:14px;
+}
+
+/* ===== MAIN CV ===== */
+.cv{
+    width:100%;
+    display:flex;
+    padding:35px 0;
+}
+
+/* LEFT */
+.left{
+    width:35%;
+    padding:0 30px;
+    border-right:2px solid #f0f0f0;
+}
+
+.left h3{
+    font-size:16px;
+    color:#1c1c1c;
+    border-bottom:3px solid #1f6f78;
+    padding-bottom:8px;
+    margin:0 0 18px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+.left h3:not(:first-child){
+    margin-top:35px;
+}
+
+.left p{
+    font-size:13px;
+    color:#444;
+    line-height:1.7;
+    margin:0;
+}
+
+.left ul{
+    list-style:none;
+    padding:0;
+}
+
+.left li{
+    font-size:13px;
+    color:#444;
+    line-height:1.7;
+    margin-bottom:10px;
+    padding-left:20px;
+    position:relative;
+}
+
+.left li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:7px;
+    width:8px;
+    height:8px;
+    background:#1f6f78;
+    border-radius:50%;
+}
+
+/* skills bar */
+.skill{
+    margin-bottom:16px;
+}
+
+.skill-name{
+    font-size:13px;
+    font-weight:600;
+    color:#333;
+    margin-bottom:6px;
+}
+
+.bar{
+    height:8px;
+    background:#e0e0e0;
+    border-radius:4px;
+    overflow:hidden;
+}
+
+.fill{
+    height:100%;
+    background:linear-gradient(90deg, #1f6f78 0%, #2a9ba8 100%);
+    border-radius:4px;
+    transition:width 0.3s ease;
+}
+
+/* RIGHT */
+.right{
+    width:65%;
+    padding:0 30px 0 40px;
+    position:relative;
+}
+
+/* timeline line */
+.right::before{
+    content:"";
+    position:absolute;
+    left:20px;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg, #1f6f78 0%, #2a9ba8 100%);
+    border-radius:2px;
+}
+
+.section{
+    margin-bottom:40px;
+}
+
+.section:last-child{
+    margin-bottom:0;
+}
+
+.section h3{
+    font-size:16px;
+    color:#1c1c1c;
+    border-bottom:3px solid #1f6f78;
+    padding-bottom:8px;
+    margin:0 0 25px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+/* timeline item */
+.item{
+    display:flex;
+    margin-bottom:30px;
+    position:relative;
+}
+
+.item:last-child{
+    margin-bottom:0;
+}
+
+.dot{
+    width:14px;
+    height:14px;
+    background:#fff;
+    border:4px solid #1f6f78;
+    border-radius:50%;
+    position:absolute;
+    left:16px;
+    top:6px;
+    box-shadow:0 0 0 3px #fff;
+    z-index:2;
+}
+
+.date{
+    width:110px;
+    padding-left:40px;
+    font-size:12px;
+    font-weight:700;
+    color:#1f6f78;
+    padding-top:4px;
+}
+
+.content h4{
+    margin:0 0 4px;
+    font-size:15px;
+    font-weight:700;
+    color:#1c1c1c;
+    line-height:1.3;
+}
+
+.content span{
+    font-weight:600;
+    font-size:13px;
+    color:#1f6f78;
+    display:block;
+    margin-bottom:6px;
+}
+
+.content p{
+    margin:0;
+    font-size:13px;
+    color:#555;
+    line-height:1.7;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px){
+    .cv{
+        flex-direction:column;
+    }
+    
+    .left, .right{
+        width:100%;
+        border-right:none;
+        padding:0 25px;
+    }
+    
+    .left{
+        padding-bottom:30px;
+        border-bottom:2px solid #f0f0f0;
+        margin-bottom:30px;
+    }
+}
+
+@media print{
+    body{
+        padding:0;
+        background:#fff;
+    }
+    
+    .container{
+        box-shadow:none;
+        max-width:100%;
+    }
+    
+    .header{
+        height:240px;
+    }
+    
+    .cv{
+        padding:30px 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+
+<svg viewBox="0 0 1920 280" preserveAspectRatio="none">
+    <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1c1c1c"/>
+            <stop offset="100%" stop-color="#0d3a4f"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1f6f78" stop-opacity=".6"/>
+            <stop offset="100%" stop-color="#2a9ba8" stop-opacity=".4"/>
+        </linearGradient>
+        <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00aaff" stop-opacity=".3"/>
+            <stop offset="100%" stop-color="#0066cc" stop-opacity=".2"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Base gradient -->
+    <rect width="1920" height="280" fill="url(#g1)"/>
+    
+    <!-- Geometric shapes -->
+    <polygon points="0,280 800,0 1300,280" fill="url(#g2)"/>
+    <polygon points="700,280 1300,0 1920,280" fill="url(#g3)"/>
+    
+    <!-- Accent circles -->
+    <circle cx="200" cy="100" r="80" fill="#1f6f78" opacity=".15"/>
+    <circle cx="1700" cy="150" r="100" fill="#00aaff" opacity=".12"/>
+    
+    <!-- Bottom accent line -->
+    <rect x="0" y="275" width="1920" height="5" fill="url(#g2)"/>
+</svg>
+
+<div class="header-content">
+    <div class="avatar">
+        <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo">
+    </div>
+    <h1>NOM PRÉNOM</h1>
+    <h2>INTITULÉ DU POSTE</h2>
+
+    <div class="header-infos">
+        <div><i class="fa fa-phone"></i><span>123 456 789</span></div>
+        <div><i class="fa fa-envelope"></i><span>email@gmail.com</span></div>
+        <div><i class="fa fa-globe"></i><span>www.site.com</span></div>
+        <div><i class="fa fa-location-dot"></i><span>Ville, Pays</span></div>
+    </div>
+</div>
+</div>
+
+<!-- CV BODY -->
+<div class="cv">
+
+<div class="left">
+    <h3>Profil</h3>
+    <p>Professionnel(le) expérimenté(e) et passionné(e), doté(e) d'une forte capacité d'adaptation et d'un excellent sens de l'organisation.</p>
+
+    <h3>Compétences</h3>
+    <ul>
+        <li>Gestion de projet</li>
+        <li>Organisation et planification</li>
+        <li>Communication interpersonnelle</li>
+        <li>Travail en équipe</li>
+        <li>Résolution de problèmes</li>
+    </ul>
+
+    <h3>Logiciels</h3>
+    <div class="skill">
+        <div class="skill-name">Photoshop</div>
+        <div class="bar"><div class="fill" style="width:80%"></div></div>
+    </div>
+    <div class="skill">
+        <div class="skill-name">Illustrator</div>
+        <div class="bar"><div class="fill" style="width:70%"></div></div>
+    </div>
+    <div class="skill">
+        <div class="skill-name">HTML / CSS</div>
+        <div class="bar"><div class="fill" style="width:85%"></div></div>
+    </div>
+    <div class="skill">
+        <div class="skill-name">Microsoft Office</div>
+        <div class="bar"><div class="fill" style="width:90%"></div></div>
+    </div>
+
+    <h3>Langues</h3>
+    <ul>
+        <li>Français — Natif</li>
+        <li>Anglais — Avancé</li>
+        <li>Espagnol — Intermédiaire</li>
+    </ul>
+</div>
+
+<div class="right">
+    <div class="section">
+        <h3>Éducation</h3>
+
+        <div class="item">
+            <div class="dot"></div>
+            <div class="date">2010 - 2013</div>
+            <div class="content">
+                <h4>Master en Management</h4>
+                <span>Université / École Supérieure</span>
+                <p>Spécialisation en gestion de projet et stratégie d'entreprise.</p>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="dot"></div>
+            <div class="date">2007 - 2010</div>
+            <div class="content">
+                <h4>Licence en Économie</h4>
+                <span>Université</span>
+                <p>Formation générale en économie et sciences de gestion.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Expérience Professionnelle</h3>
+
+        <div class="item">
+            <div class="dot"></div>
+            <div class="date">2021 - 2024</div>
+            <div class="content">
+                <h4>Chef de Projet</h4>
+                <span>Nom de l'Entreprise</span>
+                <p>Pilotage de projets stratégiques, coordination d'équipes pluridisciplinaires et optimisation des processus internes.</p>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="dot"></div>
+            <div class="date">2018 - 2021</div>
+            <div class="content">
+                <h4>Coordinateur Opérationnel</h4>
+                <span>Nom de l'Entreprise</span>
+                <p>Gestion opérationnelle quotidienne, suivi des indicateurs de performance et amélioration continue.</p>
+            </div>
+        </div>
+
+        <div class="item">
+            <div class="dot"></div>
+            <div class="date">2015 - 2018</div>
+            <div class="content">
+                <h4>Assistant de Gestion</h4>
+                <span>Nom de l'Entreprise</span>
+                <p>Support administratif, gestion documentaire et assistance à la direction.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

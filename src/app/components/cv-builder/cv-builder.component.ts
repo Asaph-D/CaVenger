@@ -1,23 +1,33 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, inject, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CvApiService, CVTemplate } from '../../services/cv-api.service';
 import { CVStateService } from '../../services/cv-state.service';
+import { ModalService } from '../../services/modal.service';
+import { SubscriptionService } from '../../services/subscription.service';
 import { ThemeService } from '../../services/theme.service';
+import { AuthService } from '../../services/auth.service';
 import { CVPreviewComponent } from '../cv-preview/cv-preview.component';
 import { CvTemplateSelectorComponent } from '../home/components/cv-template-selector/cv-template-selector.component';
 import { SectionEditorComponent } from '../section-editor/section-editor.component';
 import { StyleEditorComponent } from '../style-editor/style-editor.component';
+import { CVDataWizardComponent } from './components/cv-data-wizard/cv-data-wizard.component';
+import { TemplatePickerComponent } from './components/template-picker/template-picker.component';
 
 @Component({
   selector: 'app-cv-builder',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     CVPreviewComponent,
     StyleEditorComponent,
     SectionEditorComponent,
-    CvTemplateSelectorComponent
+    CvTemplateSelectorComponent,
+    TemplatePickerComponent,
+    CVDataWizardComponent,
   ],
   animations: [
     trigger('slideInRight', [
@@ -235,18 +245,37 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
               </button>
               <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
               <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
-                <button (click)="setViewMode('edit')" [ngClass]="{'bg-white text-gray-900': viewMode === 'edit' && !themeService.isDarkMode(), 'bg-gray-600 text-white': viewMode === 'edit' && themeService.isDarkMode()}" class="px-3 py-1 rounded-md text-sm font-medium transition-all flex items-center">
+                <button 
+                  (click)="!subscriptionService.isPremium() ? goToPayment() : setViewMode('edit')" 
+                  [ngClass]="{
+                    'bg-white text-gray-900': viewMode === 'edit' && !themeService.isDarkMode() && subscriptionService.isPremium(), 
+                    'bg-gray-600 text-white': viewMode === 'edit' && themeService.isDarkMode() && subscriptionService.isPremium(),
+                    'opacity-50 cursor-not-allowed': !subscriptionService.isPremium()
+                  }" 
+                  [title]="!subscriptionService.isPremium() ? 'Fonctionnalité Premium - Cliquez pour passer à Premium' : 'Mode Édition'"
+                  class="px-3 py-1 rounded-md text-sm font-medium transition-all flex items-center relative">
                   <i class="fas fa-edit mr-1"></i>
                   <span>Édition</span>
+                  <i *ngIf="!subscriptionService.isPremium()" class="fas fa-lock ml-1 text-xs"></i>
                 </button>
                 <button (click)="setViewMode('preview')" [ngClass]="{'bg-white text-gray-900': viewMode === 'preview' && !themeService.isDarkMode(), 'bg-gray-600 text-white': viewMode === 'preview' && themeService.isDarkMode()}" class="px-3 py-1 rounded-md text-sm font-medium transition-all flex items-center">
                   <i class="fas fa-eye mr-1"></i>
                   <span>Aperçu</span>
                 </button>
               </div>
-              <button (click)="toggleStyleEditor()" [ngClass]="{'bg-purple-100 text-purple-700': showStyleEditor && !themeService.isDarkMode(), 'bg-purple-900 text-purple-200': showStyleEditor && themeService.isDarkMode()}" class="flex items-center px-3 py-2 rounded-lg transition-colors">
+              <button 
+                (click)="toggleStyleEditor()" 
+                [ngClass]="{'bg-purple-100 text-purple-700': showStyleEditor && !themeService.isDarkMode(), 'bg-purple-900 text-purple-200': showStyleEditor && themeService.isDarkMode(), 'opacity-50 cursor-not-allowed': !subscriptionService.hasFeature('canCustomizeStyles')}"
+                [title]="!subscriptionService.hasFeature('canCustomizeStyles') ? 'Fonctionnalité Premium - Cliquez pour passer à Premium' : 'Éditeur de style'"
+                class="flex items-center px-3 py-2 rounded-lg transition-colors relative"
+                (click)="!subscriptionService.hasFeature('canCustomizeStyles') && goToPayment()">
                 <i class="fas fa-palette mr-2"></i>
                 <span>Style</span>
+                <i *ngIf="!subscriptionService.hasFeature('canCustomizeStyles')" class="fas fa-lock ml-2 text-xs"></i>
+              </button>
+              <button (click)="toggleTemplatePicker()" [ngClass]="{'bg-blue-100 text-blue-700': showTemplatePicker && !themeService.isDarkMode(), 'bg-blue-900 text-blue-200': showTemplatePicker && themeService.isDarkMode()}" class="flex items-center px-3 py-2 rounded-lg transition-colors">
+                <i class="fas fa-file-alt mr-2"></i>
+                <span>Templates</span>
               </button>
               <button (click)="toggleHelp()" [ngClass]="{'bg-blue-100 text-blue-700': showHelp() && !themeService.isDarkMode(), 'bg-blue-900 text-blue-200': showHelp() && themeService.isDarkMode()}" class="flex items-center px-3 py-2 rounded-lg transition-colors">
                 <i class="fas fa-question-circle mr-2"></i>
@@ -257,9 +286,20 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
                 <i class="fas fa-save mr-2"></i>
                 <span>Sauvegarder</span>
               </button>
-              <button (click)="exportPDF()" [disabled]="isExporting" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50">
-                <i [class]="isExporting ? 'fas fa-spinner fa-spin' : 'fas fa-download'" class="mr-2"></i>
-                <span>{{ isExporting ? 'Export...' : 'PDF' }}</span>
+              <button 
+                (click)="openEmailModal()" 
+                [disabled]="isExporting" 
+                [title]="subscriptionService.isPremium() ? 'Générer et envoyer le CV' : 'Commencer la création de votre CV'"
+                class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50">
+                <i [class]="isExporting ? 'fas fa-spinner fa-spin' : (subscriptionService.isPremium() ? 'fas fa-envelope' : 'fas fa-play')" class="mr-2"></i>
+                <span>{{ isExporting ? 'Génération...' : (subscriptionService.isPremium() ? 'Générer & Envoyer' : 'Commencer') }}</span>
+              </button>
+              <button 
+                *ngIf="!subscriptionService.isPremium()"
+                (click)="goToPayment()"
+                class="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105">
+                <i class="fas fa-crown mr-2"></i>
+                <span>Premium</span>
               </button>
             </div>
           </div>
@@ -279,8 +319,8 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
               <button (click)="saveCV()" class="p-2 bg-green-600 text-white rounded-lg" title="Sauvegarder">
                 <i class="fas fa-save text-sm"></i>
               </button>
-              <button (click)="exportPDF()" [disabled]="isExporting" class="p-2 bg-blue-600 text-white rounded-lg disabled:opacity-50" title="Export PDF">
-                <i [class]="isExporting ? 'fas fa-spinner fa-spin text-sm' : 'fas fa-download text-sm'"></i>
+              <button (click)="openEmailModal()" [disabled]="isExporting" [title]="subscriptionService.isPremium() ? 'Générer et Envoyer' : 'Commencer'" class="p-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">
+                <i [class]="isExporting ? 'fas fa-spinner fa-spin text-sm' : (subscriptionService.isPremium() ? 'fas fa-envelope text-sm' : 'fas fa-play text-sm')"></i>
               </button>
             </div>
           </div>
@@ -288,22 +328,93 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
       </header>
       <!-- Contenu principal - Desktop -->
       <div class="hidden md:flex h-[calc(100vh-4rem)]">
-        <div *ngIf="viewMode === 'edit'" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto transition-all duration-300 panel">
-          <app-section-editor></app-section-editor>
+        <!-- Zone d'édition - visible en mode edit ou en mode preview pour les utilisateurs gratuits -->
+        <div *ngIf="(viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')) && !showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto transition-all duration-300 panel relative">
+          <!-- Contenu de l'éditeur en arrière-plan -->
+          <app-section-editor [class.opacity-70]="!subscriptionService.isPremium()" [class.pointer-events-none]="!subscriptionService.isPremium()"></app-section-editor>
+          <!-- Overlay Premium pour les utilisateurs gratuits -->
+          <div *ngIf="!subscriptionService.isPremium()" class="absolute inset-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-[2px] flex items-center justify-center z-10 p-6">
+            <div class="text-center max-w-sm">
+              <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Fonctionnalité Premium</h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-4">
+              L'édition avancée du CV est disponible uniquement avec l'abonnement Premium.
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-500 mb-6">
+                Découvrez toutes les fonctionnalités d'édition en passant à Premium.
+              </p>
+              <button 
+                (click)="goToPayment()"
+                class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
+                <i class="fas fa-crown mr-2"></i>
+                Passer à Premium
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex-1 bg-gray-100 dark:bg-gray-900 overflow-y-auto p-8 transition-all duration-300 panel" [class.w-full]="viewMode === 'preview'" [ngClass]="{'w-2/3': viewMode === 'edit'}">
+        <div *ngIf="viewMode === 'edit' && showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto transition-all duration-300 panel">
+          <app-template-picker (templateSelected)="onTemplateSelectedFromPicker($event)"></app-template-picker>
+        </div>
+        <div class="flex-1 bg-gray-100 dark:bg-gray-900 overflow-y-auto p-8 transition-all duration-300 panel" [class.w-full]="viewMode === 'preview' && subscriptionService.isPremium()" [ngClass]="{'w-2/3': viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')}">
           <div class="max-w-4xl mx-auto">
             <app-cv-preview></app-cv-preview>
           </div>
         </div>
-        <div *ngIf="showStyleEditor" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto animate-slide-in-right panel">
+        <div *ngIf="showStyleEditor && subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto animate-slide-in-right panel">
           <app-style-editor></app-style-editor>
+        </div>
+        <div *ngIf="showStyleEditor && !subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto animate-slide-in-right panel p-6">
+          <div class="text-center py-12">
+            <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Fonctionnalité Premium</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+              L'éditeur de style est disponible uniquement avec l'abonnement Premium.
+            </p>
+            <button 
+              (click)="goToPayment()"
+              class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+              <i class="fas fa-crown mr-2"></i>
+              Passer à Premium
+            </button>
+          </div>
         </div>
       </div>
       <!-- Contenu principal - Mobile -->
       <div class="md:hidden mobile-view-container" [ngSwitch]="mobileView">
-        <div *ngSwitchCase="'edit'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800">
-          <app-section-editor></app-section-editor>
+        <!-- Zone d'édition - visible en mode edit ou en mode preview pour les utilisateurs gratuits -->
+        <div *ngSwitchCase="'edit'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800 relative">
+          <div *ngIf="!showTemplatePicker">
+            <!-- Contenu de l'éditeur en arrière-plan -->
+            <app-section-editor [class.opacity-70]="!subscriptionService.isPremium()" [class.pointer-events-none]="!subscriptionService.isPremium()"></app-section-editor>
+            <!-- Overlay Premium pour les utilisateurs gratuits -->
+            <div *ngIf="!subscriptionService.isPremium()" class="absolute inset-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center z-10 p-6">
+              <div class="text-center max-w-sm">
+                <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Fonctionnalité Premium</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                  L'édition avancée du CV est disponible uniquement avec l'abonnement Premium.
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-500 mb-6">
+                  Découvrez toutes les fonctionnalités d'édition en passant à Premium.
+                </p>
+                <button 
+                  (click)="goToPayment()"
+                  class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
+                  <i class="fas fa-crown mr-2"></i>
+                  Passer à Premium
+                </button>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="showTemplatePicker">
+            <div class="p-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 class="font-semibold text-gray-900 dark:text-white">Choisir un template</h3>
+              <button (click)="showTemplatePicker = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <app-template-picker (templateSelected)="onTemplateSelectedFromPicker($event)"></app-template-picker>
+          </div>
         </div>
         <div *ngSwitchCase="'preview'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-gray-100 dark:bg-gray-900 p-2">
           <div class="cv-mobile-container">
@@ -311,7 +422,22 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
           </div>
         </div>
         <div *ngSwitchCase="'style'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800">
-          <app-style-editor></app-style-editor>
+          <div *ngIf="subscriptionService.hasFeature('canCustomizeStyles')">
+            <app-style-editor></app-style-editor>
+          </div>
+          <div *ngIf="!subscriptionService.hasFeature('canCustomizeStyles')" class="p-6 text-center py-12">
+            <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Fonctionnalité Premium</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+              L'éditeur de style est disponible uniquement avec l'abonnement Premium.
+            </p>
+            <button 
+              (click)="goToPayment()"
+              class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+              <i class="fas fa-crown mr-2"></i>
+              Passer à Premium
+            </button>
+          </div>
         </div>
         <div *ngSwitchCase="'more'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800 p-4">
           <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Actions</h2>
@@ -330,6 +456,15 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
             </button>
             <!-- Dans la section "Plus" de la vue mobile -->
             <button
+              (click)="toggleTemplatePicker()"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span class="flex items-center text-gray-700 dark:text-gray-200">
+                <i class="fas fa-file-alt mr-3"></i>
+                Changer de template
+              </span>
+            </button>
+            <button
+              *ngIf="subscriptionService.isPremium()"
               (click)="toggleAddSectionMenu($event)"
               class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <span class="flex items-center text-gray-700 dark:text-gray-200">
@@ -347,19 +482,34 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
               </button>
             </div>
 
-            <button (click)="toggleDragMode()" class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <button 
+              (click)="subscriptionService.hasFeature('canChangeLayout') ? toggleDragMode() : goToPayment()" 
+              [class.opacity-50]="!subscriptionService.hasFeature('canChangeLayout')"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <span class="flex items-center text-gray-700 dark:text-gray-200">
                 <i class="fas fa-arrows-alt mr-3"></i>
                 Mode déplacement
+                <i *ngIf="!subscriptionService.hasFeature('canChangeLayout')" class="fas fa-lock ml-2 text-xs"></i>
               </span>
               <span *ngIf="dragMode()" class="text-green-600"><i class="fas fa-check"></i></span>
             </button>
-            <button (click)="toggleResizeMode()" class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <button 
+              (click)="subscriptionService.hasFeature('canChangeLayout') ? toggleResizeMode() : goToPayment()" 
+              [class.opacity-50]="!subscriptionService.hasFeature('canChangeLayout')"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <span class="flex items-center text-gray-700 dark:text-gray-200">
                 <i class="fas fa-expand-arrows-alt mr-3"></i>
                 Mode redimensionnement
+                <i *ngIf="!subscriptionService.hasFeature('canChangeLayout')" class="fas fa-lock ml-2 text-xs"></i>
               </span>
               <span *ngIf="resizeMode()" class="text-green-600"><i class="fas fa-check"></i></span>
+            </button>
+            <button 
+              *ngIf="!subscriptionService.isPremium()"
+              (click)="goToPayment()"
+              class="w-full flex items-center justify-center p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold mt-4">
+              <i class="fas fa-crown mr-2"></i>
+              Passer à Premium
             </button>
             <div *ngIf="isDirty()" class="w-full p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
               <div class="flex items-center text-amber-700 dark:text-amber-400">
@@ -372,9 +522,15 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
       </div>
       <!-- Navigation Mobile -->
       <nav class="mobile-tabs">
-        <button (click)="setMobileView('edit')" [class.active]="mobileView === 'edit'" class="tab-button">
-          <i class="fas fa-edit"></i>
-          <span>Éditer</span>
+        <button 
+          (click)="!subscriptionService.isPremium() ? goToPayment() : setMobileView('edit')" 
+          [class.active]="mobileView === 'edit' && subscriptionService.isPremium()" 
+          [class.opacity-50]="!subscriptionService.isPremium()"
+          [title]="!subscriptionService.isPremium() ? 'Fonctionnalité Premium' : 'Mode Édition'"
+          class="tab-button relative">
+          <i [class]="showTemplatePicker ? 'fas fa-file-alt' : 'fas fa-edit'"></i>
+          <span>{{ showTemplatePicker ? 'Templates' : 'Éditer' }}</span>
+          <i *ngIf="!subscriptionService.isPremium()" class="fas fa-lock absolute top-0 right-0 text-xs"></i>
         </button>
         <button (click)="setMobileView('preview')" [class.active]="mobileView === 'preview'" class="tab-button">
           <i class="fas fa-eye"></i>
@@ -391,7 +547,7 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
       </nav>
       <!-- Boutons flottants (Desktop seulement) -->
       <div class="hidden md:flex fixed bottom-6 right-6 flex-col space-y-4 z-50">
-        <div class="relative group">
+        <div class="relative group" *ngIf="subscriptionService.isPremium()">
           <button (click)="toggleAddSectionMenu($event)" class="floating-button bg-purple-600 text-white p-4 rounded-full shadow-lg hover:bg-purple-700 transition-all transform hover:scale-105" title="Ajouter une section">
             <i class="fas fa-plus"></i>
           </button>
@@ -412,10 +568,77 @@ import { StyleEditorComponent } from '../style-editor/style-editor.component';
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl animate-fade-in">
           <div class="flex items-center">
             <i class="fas fa-spinner fa-spin text-blue-600 mr-3"></i>
-            <span class="text-gray-800 dark:text-white">Génération du PDF en cours...</span>
+            <span class="text-gray-800 dark:text-white">Génération du CV en cours...</span>
           </div>
         </div>
       </div>
+      <!-- Modal de saisie d'email -->
+      <div *ngIf="showEmailModal && !showDataWizard" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="closeEmailModal()">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl animate-fade-in max-w-md w-full mx-4" (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Générer et Envoyer le CV</h2>
+            <button (click)="closeEmailModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
+            Entrez votre adresse email pour recevoir votre CV généré au format PDF.
+          </p>
+          <div class="mb-4">
+            <label for="userEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Adresse email
+            </label>
+            <input
+              type="email"
+              id="userEmail"
+              [(ngModel)]="userEmail"
+              placeholder="votre.email@domain.com"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              [class.border-red-500]="emailError"
+            />
+            <p *ngIf="emailError" class="mt-2 text-sm text-red-600 dark:text-red-400">
+              <i class="fas fa-exclamation-circle mr-1"></i>{{ emailError }}
+            </p>
+          </div>
+          <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+              <strong>Mode Gratuit :</strong> Remplissez les informations de votre CV étape par étape.
+            </p>
+            <button 
+              (click)="showDataWizard = true"
+              class="w-full mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+              <i class="fas fa-edit mr-2"></i>
+              Remplir les informations du CV
+            </button>
+          </div>
+          <div class="flex justify-end space-x-3">
+            <button
+              (click)="closeEmailModal()"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              (click)="generateAndSendCV()"
+              [disabled]="isExporting || !userEmail"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            >
+              <i *ngIf="isExporting" class="fas fa-spinner fa-spin mr-2"></i>
+              <i *ngIf="!isExporting" class="fas fa-paper-plane mr-2"></i>
+              {{ isExporting ? 'Génération...' : 'Générer et Envoyer' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard de collecte de données -->
+      <app-cv-data-wizard
+        *ngIf="showDataWizard"
+        [initialData]="getWizardInitialData()"
+        (completed)="onWizardCompleted($event)"
+        (cancelled)="showDataWizard = false">
+      </app-cv-data-wizard>
     </div>
     <app-cv-template-selector 
       (templateSelected)="onTemplateSelected($event)">
@@ -427,6 +650,10 @@ export class CVBuilderComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly themeService = inject(ThemeService);
+  private readonly cvApiService = inject(CvApiService);
+  protected readonly subscriptionService = inject(SubscriptionService);
+  private readonly modalService = inject(ModalService);
+  private readonly authService = inject(AuthService);
   @ViewChild(CVPreviewComponent) cvPreviewComponent?: CVPreviewComponent;
 
   currentCV = this.cvService.currentCV;
@@ -437,10 +664,16 @@ export class CVBuilderComponent implements OnInit {
   viewMode: 'edit' | 'preview' = 'edit';
   mobileView: 'edit' | 'preview' | 'style' | 'more' = 'preview';
   showStyleEditor = false;
+  showTemplatePicker = false;
+  showDataWizard = false;
   autoSaving = false;
   showShortcuts = false;
   showAddSectionMenu = false;
   isExporting = false;
+  showEmailModal = false;
+  userEmail = '';
+  emailError = '';
+  wizardCollectedData: any = null;
 
   availableSectionTypes = [
     { type: 'profile', name: 'Profil Professionnel', icon: 'fas fa-user', position: 'right' as const },
@@ -455,6 +688,13 @@ export class CVBuilderComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    // Si l'utilisateur n'est pas premium et est en mode édition, le rediriger vers le mode preview
+    if (!this.subscriptionService.isPremium() && this.viewMode === 'edit') {
+      this.viewMode = 'preview';
+    }
+    if (!this.subscriptionService.isPremium() && this.mobileView === 'edit') {
+      this.mobileView = 'preview';
+    }
     if (!this.currentCV()) {
       this.router.navigate(['/']);
       return;
@@ -478,7 +718,7 @@ export class CVBuilderComponent implements OnInit {
           break;
         case 'e':
           event.preventDefault();
-          this.exportPDF();
+          this.openEmailModal();
           break;
         case 'h':
           event.preventDefault();
@@ -502,6 +742,11 @@ export class CVBuilderComponent implements OnInit {
   }
 
   setMobileView(view: 'edit' | 'preview' | 'style' | 'more'): void {
+    // Empêcher le passage en mode édition pour les utilisateurs gratuits
+    if (view === 'edit' && !this.subscriptionService.isPremium()) {
+      this.goToPayment();
+      return;
+    }
     this.mobileView = view;
   }
 
@@ -538,6 +783,11 @@ export class CVBuilderComponent implements OnInit {
   }
 
   setViewMode(mode: 'edit' | 'preview'): void {
+    // Empêcher le passage en mode édition pour les utilisateurs gratuits
+    if (mode === 'edit' && !this.subscriptionService.isPremium()) {
+      this.goToPayment();
+      return;
+    }
     this.viewMode = mode;
   }
 
@@ -555,26 +805,258 @@ export class CVBuilderComponent implements OnInit {
     this.cvService.saveCV();
   }
 
-  async exportPDF(): Promise<void> {
+  openEmailModal(): void {
+    const currentCV = this.currentCV();
+    // Pré-remplir avec l'email du contact si disponible
+    const emailContact = currentCV?.contactInfo?.find(c => c.type === 'email' && c.visible);
+    this.userEmail = emailContact?.value || '';
+    this.emailError = '';
+    this.showEmailModal = true;
+    this.showDataWizard = false;
+    this.cdr.detectChanges();
+  }
+
+  closeEmailModal(): void {
+    this.showEmailModal = false;
+    this.userEmail = '';
+    this.emailError = '';
+    this.cdr.detectChanges();
+  }
+
+  getWizardInitialData(): any {
+    const currentCV = this.currentCV();
+    if (!currentCV) return null;
+
+    return {
+      personalInfo: currentCV.personalInfo || {
+        firstName: '',
+        lastName: '',
+        title: '',
+        summary: '',
+        profileType: 'initials' as const
+      },
+      contactInfo: currentCV.contactInfo || [],
+      experience: currentCV.experience || [],
+      education: currentCV.education || [],
+      skills: currentCV.skills || [],
+      languages: currentCV.languages || []
+    };
+  }
+
+  onWizardCompleted(data: any): void {
+    console.log('✅ Données collectées depuis le wizard:', data);
+    this.wizardCollectedData = data;
+    this.showDataWizard = false;
+    
+    // Extraire l'email depuis les données de contact
+    const emailContact = data.contactInfo?.find((c: any) => c.type === 'email');
+    if (emailContact?.value) {
+      this.userEmail = emailContact.value;
+    }
+    
+    // Générer directement le CV avec les données collectées
+    this.generateAndSendCVWithData(data);
+  }
+
+  async generateAndSendCV(): Promise<void> {
+    // Si on a des données du wizard, les utiliser
+    if (this.wizardCollectedData) {
+      this.generateAndSendCVWithData(this.wizardCollectedData);
+      return;
+    }
+
+    // Sinon, utiliser les données du CV actuel
+    const currentCV = this.currentCV();
+    if (!currentCV) {
+      // Si pas de CV, ouvrir le wizard
+      this.showEmailModal = false;
+      this.showDataWizard = true;
+      return;
+    }
+
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!this.userEmail || !emailRegex.test(this.userEmail)) {
+      this.emailError = 'Veuillez entrer une adresse email valide';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Déterminer le template ID depuis le template du CV
+    const templateId = currentCV.template?.id || 'cv1';
+
     this.isExporting = true;
+    this.emailError = '';
+
     try {
-      await this.cvService.exportToPDF();
+      this.cvApiService.generateCVFromFrontend(
+        this.userEmail,
+        templateId,
+        currentCV
+      ).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.modalService.showSuccess(
+              `${response.message}\nVotre CV a été envoyé à ${this.userEmail}`,
+              'CV envoyé avec succès'
+            );
+            this.closeEmailModal();
+          } else {
+            this.emailError = 'Erreur lors de la génération du CV';
+          }
+          this.isExporting = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Erreur lors de la génération du CV:', error);
+          this.emailError = error.error?.error || 'Erreur lors de la génération du CV. Veuillez réessayer.';
+          this.isExporting = false;
+          this.cdr.detectChanges();
+        }
+      });
     } catch (error) {
-      console.error('Error exporting PDF:', error);
-      alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
-    } finally {
+      console.error('Erreur lors de la génération du CV:', error);
+      this.emailError = 'Erreur lors de la génération du CV. Veuillez réessayer.';
+      this.isExporting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async generateAndSendCVWithData(data: any): Promise<void> {
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!this.userEmail || !emailRegex.test(this.userEmail)) {
+      this.emailError = 'Veuillez entrer une adresse email valide';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Déterminer le template ID depuis le template du CV actuel ou utiliser cv1 par défaut
+    const currentCV = this.currentCV();
+    const templateId = currentCV?.template?.id || 'cv1';
+
+    this.isExporting = true;
+    this.emailError = '';
+
+    // Préparer les données pour le backend
+    const cvDataForBackend = {
+      personalInfo: data.personalInfo,
+      contactInfo: data.contactInfo,
+      experience: data.experience || [],
+      education: data.education || [],
+      skills: data.skills || [],
+      languages: data.languages || [],
+      interests: data.interests || []
+    };
+
+    try {
+      this.cvApiService.generateCV({
+        userEmail: this.userEmail,
+        templateId: templateId,
+        cvData: cvDataForBackend
+      }).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.modalService.showSuccess(
+              `${response.message}\nVotre CV a été envoyé à ${this.userEmail}`,
+              'CV envoyé avec succès'
+            );
+            this.closeEmailModal();
+            this.wizardCollectedData = null;
+          } else {
+            this.emailError = 'Erreur lors de la génération du CV';
+          }
+          this.isExporting = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Erreur lors de la génération du CV:', error);
+          this.emailError = error.error?.error || 'Erreur lors de la génération du CV. Veuillez réessayer.';
+          this.isExporting = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération du CV:', error);
+      this.emailError = 'Erreur lors de la génération du CV. Veuillez réessayer.';
       this.isExporting = false;
       this.cdr.detectChanges();
     }
   }
 
   toggleStyleEditor(): void {
+    if (!this.subscriptionService.hasFeature('canCustomizeStyles')) {
+      this.goToPayment();
+      return;
+    }
     this.showStyleEditor = !this.showStyleEditor;
   }
 
+  goToPayment(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.modalService.showWarning(
+        'Vous devez être connecté pour accéder au paiement premium.',
+        'Connexion requise'
+      );
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/payment' } });
+      return;
+    }
+    this.router.navigate(['/payment']);
+  }
+
+
   onTemplateSelected(templateId: string) {
-    console.log('Template sélectionné:', templateId);
-    // Logique de sélection
+    console.log('Template sélectionné (depuis cv-template-selector):', templateId);
+    // Mettre à jour le template du CV pour la génération backend
+    const currentCV = this.cvService.currentCV();
+    if (currentCV && currentCV.template) {
+      // Mettre à jour l'ID du template pour qu'il corresponde aux fichiers du backend (cv1.html, cv2.html, etc.)
+      this.cvService.updateCVData({
+        template: {
+          ...currentCV.template,
+          id: templateId
+        }
+      });
+    }
+  }
+
+  onTemplateSelectedFromPicker(template: CVTemplate): void {
+    console.log('Template sélectionné depuis le picker:', template);
+    
+    // Vérifier si le template est gratuit ou si l'utilisateur est premium
+    if (!this.subscriptionService.isTemplateFree(template.id) && !this.subscriptionService.isPremium()) {
+      this.modalService.showWarning(
+        'Ce template est réservé aux abonnés Premium. Passez à Premium pour l\'utiliser.',
+        'Template Premium'
+      );
+      this.goToPayment();
+      return;
+    }
+
+    // Convertir le template du backend en CVTemplate pour l'application
+    const cvTemplate = this.cvService.convertTemplateSelectorToCVTemplate({
+      id: template.id,
+      name: template.name,
+      description: template.description,
+      layout: template.layout
+    });
+
+    // Appliquer le template au CV
+    this.cvService.applyTemplate(cvTemplate);
+    
+    // Fermer le template picker
+    this.showTemplatePicker = false;
+    
+    // Afficher un message de confirmation
+    console.log('✅ Template appliqué:', template.name);
+    this.cdr.detectChanges();
+  }
+
+  toggleTemplatePicker(): void {
+    this.showTemplatePicker = !this.showTemplatePicker;
+    if (this.showTemplatePicker && this.viewMode !== 'edit') {
+      this.setViewMode('edit');
+    }
   }
 
   toggleHelp(): void {

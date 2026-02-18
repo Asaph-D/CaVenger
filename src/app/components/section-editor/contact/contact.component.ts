@@ -1,9 +1,11 @@
-import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { canAddItem, canRemoveItem, getMaxItems, getMinItems } from '../../../config/section-limits.config';
+import { ContactInfo } from '../../../models/cv.interface';
 import { CVStateService } from '../../../services/cv-state.service';
 import { ThemeService } from '../../../services/theme.service';
-import { ContactInfo } from '../../../models/cv.interface';
+import { ModalService } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-contact',
@@ -12,10 +14,18 @@ import { ContactInfo } from '../../../models/cv.interface';
   template: `
     <div class="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       <div class="flex items-center justify-between mb-6">
-        <h4 class="text-lg font-semibold">Contact</h4>
+        <div>
+          <h4 class="text-lg font-semibold">Contact</h4>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ contactInfo.length }} / {{ getMaxItems('contactInfo') }} contacts
+          </p>
+        </div>
         <button
           (click)="addContact()"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+          [disabled]="!canAdd()"
+          [class.opacity-50]="!canAdd()"
+          [class.cursor-not-allowed]="!canAdd()"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fas fa-plus mr-2"></i>
           Ajouter
         </button>
@@ -33,7 +43,11 @@ import { ContactInfo } from '../../../models/cv.interface';
               placeholder="Label (ex: Email, Téléphone)">
             <button
               (click)="removeContact(contact.id)"
-              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors">
+              [disabled]="!canRemove()"
+              [class.opacity-50]="!canRemove()"
+              [class.cursor-not-allowed]="!canRemove()"
+              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [title]="getRemoveButtonTitle()">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -81,6 +95,7 @@ import { ContactInfo } from '../../../models/cv.interface';
 export class ContactComponent {
   private readonly cvService = inject(CVStateService);
   private readonly themeService = inject(ThemeService);
+  private readonly modalService = inject(ModalService);
 
   currentCV = this.cvService.currentCV;
 
@@ -99,6 +114,13 @@ export class ContactComponent {
   }
 
   addContact() {
+    if (!this.canAdd()) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('contactInfo')} contacts.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     this.cvService.addContactInfo({
       icon: 'fas fa-envelope',
       label: 'Email',
@@ -109,7 +131,37 @@ export class ContactComponent {
   }
 
   removeContact(contactId: string) {
+    if (!this.canRemove()) {
+      this.modalService.showWarning(
+        `Vous devez conserver au minimum ${getMinItems('contactInfo')} contact(s).`,
+        'Limite minimale'
+      );
+      return;
+    }
     this.cvService.removeContactInfo(contactId);
+  }
+
+  canAdd(): boolean {
+    return canAddItem('contactInfo', this.contactInfo.length);
+  }
+
+  canRemove(): boolean {
+    return canRemoveItem('contactInfo', this.contactInfo.length);
+  }
+
+  getMaxItems(sectionType: string): number {
+    return getMaxItems(sectionType);
+  }
+
+  getMinItems(sectionType: string): number {
+    return getMinItems(sectionType);
+  }
+
+  getRemoveButtonTitle(): string {
+    if (this.canRemove()) {
+      return 'Supprimer le contact';
+    }
+    return `Minimum ${this.getMinItems('contactInfo')} contact(s) requis`;
   }
 
   trackByContactId(index: number, item: ContactInfo) {

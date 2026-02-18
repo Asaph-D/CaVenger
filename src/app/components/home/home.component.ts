@@ -1,14 +1,18 @@
-import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { CvApiService, CVTemplate } from '../../services/cv-api.service';
 import { CVStateService } from '../../services/cv-state.service';
-import { CVTemplate } from '../../models/cv.interface';
-import { ParticlesComponent } from '../particles/particles.component'; // Chemin à adapter
+import { SubscriptionService } from '../../services/subscription.service';
+import { AuthService } from '../../services/auth.service';
+import { ModalService } from '../../services/modal.service';
+import { ParticlesComponent } from '../particles/particles.component';
+import { CvTemplateSelectorComponent } from './components/cv-template-selector/cv-template-selector.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ParticlesComponent],
+  imports: [CommonModule, RouterModule, ParticlesComponent, CvTemplateSelectorComponent],
   styles: [`
     /* Fade In Animation */
     @keyframes fadeInUp {
@@ -101,6 +105,9 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
     <!-- Particles Background -->
     <app-particles></app-particles>
 
+    <!-- CV Template Selector -->
+    <app-cv-template-selector (templateSelected)="onTemplateSelected($event)"></app-cv-template-selector>
+
     <!-- Scroll Progress Bar -->
     <div class="scroll-progress" [style.width.%]="scrollProgress"></div>
 
@@ -134,8 +141,36 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
               <button class="text-sm tracking-wide hover:text-gray-300 transition-colors">
                 AIDE
               </button>
-              <button class="bg-white text-black px-6 py-2 text-sm font-medium hover:bg-gray-200 transition-all">
+              <a 
+                *ngIf="!authService.isLoggedIn()"
+                routerLink="/login"
+                class="text-sm tracking-wide hover:text-gray-300 transition-colors">
                 CONNEXION
+              </a>
+              <a 
+                *ngIf="!authService.isLoggedIn()"
+                routerLink="/register"
+                class="bg-white text-black px-6 py-2 text-sm font-medium hover:bg-gray-200 transition-all">
+                INSCRIPTION
+              </a>
+              <a 
+                *ngIf="authService.isLoggedIn()"
+                routerLink="/settings"
+                class="text-sm tracking-wide hover:text-gray-300 transition-colors">
+                PARAMÈTRES
+              </a>
+              <button 
+                *ngIf="authService.isLoggedIn() && !subscriptionService.isPremium()"
+                (click)="goToPayment()"
+                class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 text-sm font-medium hover:from-purple-700 hover:to-pink-700 transition-all">
+                <i class="fas fa-crown mr-2"></i>
+                PREMIUM
+              </button>
+              <button 
+                *ngIf="authService.isLoggedIn()"
+                (click)="handleLogout()"
+                class="text-sm tracking-wide hover:text-gray-300 transition-colors">
+                DÉCONNEXION
               </button>
             </nav>
           </div>
@@ -172,6 +207,18 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
               class="border border-white/30 px-8 py-4 text-sm font-medium tracking-wide hover:bg-white/10 transition-all">
               VOIR LES TEMPLATES
             </button>
+          </div>
+
+          <div *ngIf="!authService.isLoggedIn()" class="flex flex-col sm:flex-row gap-4 justify-center mt-6 animate-fade-in delay-500">
+            <p class="text-sm text-gray-400 tracking-wide">
+              Vous avez déjà un compte ? 
+              <a routerLink="/login" class="text-white hover:underline transition-colors">Connectez-vous</a>
+            </p>
+            <span class="hidden sm:inline text-gray-400">|</span>
+            <p class="text-sm text-gray-400 tracking-wide">
+              Nouveau ? 
+              <a routerLink="/register" class="text-white hover:underline transition-colors">Créez un compte</a>
+            </p>
           </div>
 
           <!-- Scroll Indicator -->
@@ -272,22 +319,38 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
               Choisissez parmi notre collection de templates élégants conçus par des professionnels
             </p>
           </div>
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div *ngIf="isLoadingTemplates()" class="text-center py-20">
+            <p class="text-gray-400">Chargement des templates...</p>
+          </div>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" *ngIf="!isLoadingTemplates()">
             <div
               *ngFor="let template of availableTemplates().slice(0, 6)"
               class="template-card bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden cursor-pointer group"
               (click)="selectTemplate(template)">
 
               <div class="h-80 bg-white/10 relative overflow-hidden">
-                <img *ngIf="template.thumbnail"
-                     [src]="template.thumbnail"
-                     [alt]="template.name"
-                     class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <img 
+                  [src]="getTemplateImagePath(template.id)" 
+                  [alt]="template.name"
+                  class="w-full h-full object-cover"
+                  (error)="onImageError($event, template)"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                 <div class="absolute top-4 right-4">
                   <span class="bg-black/50 backdrop-blur-sm text-white px-3 py-1 text-xs tracking-wider">
                     {{ template.layout | uppercase }}
                   </span>
+                </div>
+                <div *ngIf="isTemplateFree(template.id)" class="absolute top-4 left-4">
+                  <span class="bg-green-500 text-white px-3 py-1 text-xs tracking-wider font-semibold">
+                    GRATUIT
+                  </span>
+                </div>
+                <div *ngIf="!isTemplateFree(template.id) && !subscriptionService.isPremium()" class="absolute inset-0 bg-black/70 flex items-center justify-center">
+                  <div class="text-center text-white">
+                    <i class="fas fa-lock text-3xl mb-2"></i>
+                    <p class="text-sm font-semibold tracking-wider">PREMIUM</p>
+                  </div>
                 </div>
               </div>
 
@@ -296,12 +359,9 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
                 <p class="text-gray-400 text-sm mb-4 font-light">{{ template.description }}</p>
                 <div class="flex items-center justify-between">
                   <div class="flex space-x-2">
-                    <div class="w-3 h-3 border border-white/30"
-                         [style.background-color]="template.theme.primaryColor"></div>
-                    <div class="w-3 h-3 border border-white/30"
-                         [style.background-color]="template.theme.secondaryColor"></div>
-                    <div class="w-3 h-3 border border-white/30"
-                         [style.background-color]="template.theme.accentColor"></div>
+                    <div class="w-3 h-3 border border-white/30 bg-blue-500"></div>
+                    <div class="w-3 h-3 border border-white/30 bg-blue-400"></div>
+                    <div class="w-3 h-3 border border-white/30 bg-blue-300"></div>
                   </div>
                   <button class="text-sm tracking-wide group-hover:text-white transition-colors">
                     UTILISER →
@@ -446,17 +506,57 @@ import { ParticlesComponent } from '../particles/particles.component'; // Chemin
     </div>
   `
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   private cvService = inject(CVStateService);
   private router = inject(Router);
-  availableTemplates = this.cvService.availableTemplates;
+  private cvApiService = inject(CvApiService);
+  private modalService = inject(ModalService);
+  protected subscriptionService = inject(SubscriptionService);
+  protected authService = inject(AuthService);
+  @ViewChild(CvTemplateSelectorComponent) templateSelector!: CvTemplateSelectorComponent;
+  
   savedCVs = this.cvService.savedCVs;
+
+  // Templates chargés depuis le backend
+  availableTemplates = signal<CVTemplate[]>([]);
+  isLoadingTemplates = signal(false);
 
   scrollProgress = 0;
   isScrolled = false;
 
+  ngOnInit(): void {
+    this.subscriptionService.initialize();
+    this.loadTemplates();
+  }
+
   ngAfterViewInit(): void {
     this.initScrollListener();
+  }
+
+  /**
+   * Charge les templates depuis le backend
+   */
+  loadTemplates(): void {
+    this.isLoadingTemplates.set(true);
+    this.cvApiService.getTemplates().subscribe({
+      next: (response) => {
+        if (response.success && response.data && response.data.length > 0) {
+          this.availableTemplates.set(response.data);
+          console.log('✅ Templates chargés depuis le backend:', response.data.length);
+        } else {
+          // Fallback: utiliser les templates statiques
+          console.warn('⚠️ Backend ne retourne pas de templates, utilisation des templates statiques');
+          this.availableTemplates.set(this.subscriptionService.getStaticTemplates());
+        }
+        this.isLoadingTemplates.set(false);
+      },
+      error: (error) => {
+        console.warn('⚠️ Erreur lors du chargement des templates depuis le backend, utilisation des templates statiques:', error);
+        // Fallback: utiliser les templates statiques même en cas d'erreur
+        this.availableTemplates.set(this.subscriptionService.getStaticTemplates());
+        this.isLoadingTemplates.set(false);
+      }
+    });
   }
 
   initScrollListener() {
@@ -468,8 +568,48 @@ export class HomeComponent {
   }
   
   onTemplateSelected(templateId: string) {
-    console.log('Template sélectionné:', templateId);
-    // Logique de sélection
+    console.log('🎯 Template sélectionné depuis cv-template-selector:', templateId);
+    
+    // Trouver le template correspondant et l'appliquer
+    const template = this.availableTemplates().find((t: CVTemplate) => t.id === templateId);
+    if (template) {
+      // Vérifier si le template est accessible
+      if (!this.subscriptionService.isTemplateFree(template.id) && !this.subscriptionService.isPremium()) {
+        this.modalService.showWarning(
+          'Ce template est réservé aux abonnés Premium. Passez à Premium pour l\'utiliser.',
+          'Template Premium'
+        );
+        this.goToPayment();
+        return;
+      }
+
+      // Créer un nouveau CV
+      this.cvService.createNewCV();
+      
+      // Attendre un peu pour que le CV soit créé
+      setTimeout(() => {
+        // Convertir CVTemplateSelector en CVTemplate pour l'application
+        const cvTemplate = this.cvService.convertTemplateSelectorToCVTemplate({
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          layout: template.layout
+        });
+        
+        // Appliquer le template
+        this.cvService.applyTemplate(cvTemplate);
+        
+        // Sauvegarder le CV avec le template
+        this.cvService.saveCV();
+        
+        console.log('✅ Template appliqué:', template.name, 'ID:', template.id);
+        
+        // Naviguer vers le builder
+        this.router.navigate(['/builder']);
+      }, 100);
+    } else {
+      console.error('❌ Template non trouvé:', templateId);
+    }
   }
 
   startNewCV(): void {
@@ -478,9 +618,54 @@ export class HomeComponent {
   }
 
   selectTemplate(template: CVTemplate): void {
+    console.log('🎯 Template sélectionné depuis la page d\'accueil:', template);
+    
+    // Vérifier si le template est accessible
+    if (!this.subscriptionService.isTemplateFree(template.id) && !this.subscriptionService.isPremium()) {
+      this.modalService.showWarning(
+        'Ce template est réservé aux abonnés Premium. Passez à Premium pour l\'utiliser.',
+        'Template Premium'
+      );
+      this.goToPayment();
+      return;
+    }
+
+    // Sélectionner le template dans le composant cv-template-selector pour synchronisation visuelle
+    if (this.templateSelector) {
+      // Convertir CVTemplate en CVTemplateSelector pour le composant
+      const templateSelector = {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        layout: template.layout
+      };
+      this.templateSelector.setSelectedTemplate(templateSelector);
+    }
+    
+    // Créer un nouveau CV
     this.cvService.createNewCV();
-    this.cvService.applyTemplate(template);
-    this.router.navigate(['/builder']);
+    
+    // Attendre un peu pour que le CV soit créé
+    setTimeout(() => {
+      // Convertir le template du backend en CVTemplate pour l'application
+      const cvTemplate = this.cvService.convertTemplateSelectorToCVTemplate({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        layout: template.layout
+      });
+      
+      // Appliquer le template
+      this.cvService.applyTemplate(cvTemplate);
+      
+      // Sauvegarder le CV avec le template
+      this.cvService.saveCV();
+      
+      console.log('✅ Template appliqué:', template.name, 'ID:', template.id);
+      
+      // Naviguer vers le builder
+      this.router.navigate(['/builder']);
+    }, 100);
   }
 
   loadCV(cvId: string): void {
@@ -501,5 +686,56 @@ export class HomeComponent {
     const first = firstName?.charAt(0) || '';
     const last = lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || 'CV';
+  }
+
+  getTemplateImagePath(templateId: string): string {
+    const normalizedId = templateId.toLowerCase();
+    return `assets/templates/${normalizedId}.png`;
+  }
+
+  isTemplateFree(templateId: string): boolean {
+    return this.subscriptionService.isTemplateFree(templateId);
+  }
+
+  onImageError(event: Event, template: CVTemplate): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    if (parent) {
+      parent.innerHTML = `
+        <div class="w-full h-full flex items-center justify-center">
+          <div class="text-white text-xs opacity-50 text-center">
+            <i class="fas fa-file-alt text-4xl mb-2"></i>
+            <p>${template.name}</p>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  goToPayment(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.modalService.showWarning(
+        'Vous devez être connecté pour accéder au paiement premium.',
+        'Connexion requise'
+      );
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/payment' } });
+      return;
+    }
+    this.router.navigate(['/payment']);
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  handleLogout(): void {
+    this.modalService.showConfirm(
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      'Déconnexion',
+      () => {
+        this.authService.logout();
+      }
+    );
   }
 }

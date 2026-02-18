@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV – Executive Edge</title>
+
+<style>
+:root{
+    --accent:#2a7f87;
+    --accent-dark:#1e5e64;
+    --accent-light:#3d9b9f;
+    --dark:#1b1b1b;
+    --muted:#6e6e6e;
+    --bg:#f5f7f8;
+}
+
+*{
+    box-sizing:border-box;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+body{
+    margin:0;
+    padding:40px 20px;
+    background:#e6e6e6;
+}
+
+.cv{
+    max-width:1000px;
+    width:100%;
+    margin:auto;
+    background:#fff;
+    position:relative;
+    box-shadow:0 25px 60px rgba(0,0,0,.15);
+    overflow:hidden;
+    border-radius:8px;
+}
+
+/* ==== SIGNATURE SVG - REPOSITIONNÉ EN HAUT ==== */
+.signature{
+    position:absolute;
+    top:0;
+    right:0;
+    width:100%;
+    height:140px;
+    pointer-events:none;
+    z-index:1;
+}
+
+.signature svg{
+    width:100%;
+    height:100%;
+}
+
+/* ==== MAIN ==== */
+.main{
+    padding:50px 60px;
+    position:relative;
+    z-index:2;
+}
+
+/* ==== HEADER ==== */
+.header{
+    display:grid;
+    grid-template-columns:1fr 140px;
+    gap:40px;
+    align-items:center;
+    margin-bottom:50px;
+    position:relative;
+}
+
+.identity h1{
+    margin:0;
+    font-size:42px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    color:var(--dark);
+}
+
+.identity h2{
+    margin:10px 0 20px;
+    font-size:19px;
+    font-weight:600;
+    color:var(--accent);
+}
+
+.identity p{
+    max-width:600px;
+    font-size:15px;
+    line-height:1.7;
+    color:var(--muted);
+}
+
+.photo{
+    width:140px;
+    height:140px;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(42,127,135,.25);
+    border:3px solid #fff;
+}
+
+.photo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* ==== GRID CONTENT ==== */
+.content{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    gap:50px;
+}
+
+/* ==== LEFT ==== */
+.left{
+    background:var(--bg);
+    padding:35px 30px;
+    border-radius:8px;
+}
+
+.section{
+    margin-bottom:25px;
+}
+
+.section:last-child{
+    margin-bottom:0;
+}
+
+.section-title{
+    font-size:12px;
+    letter-spacing:2.5px;
+    font-weight:700;
+    color:var(--accent);
+    margin-bottom:20px;
+    text-transform:uppercase;
+    position:relative;
+    padding-bottom:10px;
+}
+
+.section-title::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:40px;
+    height:3px;
+    background:var(--accent);
+    border-radius:2px;
+}
+
+.info{
+    margin-bottom:16px;
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--dark);
+}
+
+.info span{
+    display:block;
+    font-size:13.5px;
+    font-weight:400;
+    color:var(--muted);
+    margin-top:4px;
+}
+
+.list{
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+
+.list li{
+    margin-bottom:12px;
+    font-size:14px;
+    color:var(--dark);
+    padding-left:18px;
+    position:relative;
+}
+
+.list li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:7px;
+    width:8px;
+    height:8px;
+    background:var(--accent);
+    border-radius:50%;
+}
+
+/* ==== RIGHT ==== */
+.right .block{
+    margin-bottom:35px;
+}
+
+.right .block:last-child{
+    margin-bottom:0;
+}
+
+.block-title{
+    font-size:16px;
+    font-weight:700;
+    color:var(--dark);
+    margin-bottom:30px;
+    position:relative;
+    padding-left:20px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+.block-title::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:8px;
+    height:8px;
+    background:var(--accent);
+    border-radius:50%;
+}
+
+.block-title::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-10px;
+    width:60px;
+    height:3px;
+    background:linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+}
+
+.entry{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:25px;
+    margin-bottom:30px;
+    padding-bottom:30px;
+    border-bottom:1px solid #f0f0f0;
+}
+
+.entry:last-child{
+    border-bottom:none;
+    padding-bottom:0;
+    margin-bottom:0;
+}
+
+.date{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--accent);
+    padding-top:2px;
+}
+
+.entry h4{
+    margin:0;
+    font-size:15.5px;
+    font-weight:600;
+    color:var(--dark);
+    line-height:1.4;
+}
+
+.entry p{
+    margin:8px 0 0;
+    font-size:14.5px;
+    line-height:1.65;
+    color:#555;
+}
+
+
+@media print{
+    body{
+        padding:0;
+        background:#fff;
+    }
+    
+    .cv{
+        box-shadow:none;
+        border-radius:0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- SIGNATURE SVG - REPOSITIONNÉ EN HAUT À DROITE -->
+    <div class="signature">
+        <svg viewBox="0 0 1000 140" preserveAspectRatio="xMaxYMin slice">
+            <!-- Forme géométrique moderne -->
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#2a7f87;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#3d9b9f;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#1e5e64;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#2a7f87;stop-opacity:0.7" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Forme principale diagonale -->
+            <polygon points="700,0 1000,0 1000,140 850,140" fill="url(#grad1)" opacity="0.15"/>
+            
+            <!-- Forme secondaire -->
+            <polygon points="800,0 1000,0 1000,80" fill="url(#grad2)" opacity="0.12"/>
+            
+            <!-- Accent géométrique -->
+            <circle cx="920" cy="40" r="25" fill="#2a7f87" opacity="0.08"/>
+            <circle cx="950" cy="90" r="15" fill="#3d9b9f" opacity="0.1"/>
+            
+            <!-- Ligne d'accent -->
+            <rect x="700" y="135" width="300" height="3" fill="url(#grad1)" opacity="0.2"/>
+        </svg>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="identity">
+                <h1>NOM PRÉNOM</h1>
+                <h2>POSTE / EXPERTISE</h2>
+                <p>
+                    Professionnel(le) expérimenté(e), reconnu(e) pour sa capacité à structurer,
+                    piloter et sécuriser des environnements complexes, avec une forte orientation
+                    résultats et qualité.
+                </p>
+            </div>
+
+            <div class="photo">
+                <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo">
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+
+            <!-- LEFT -->
+            <aside class="left">
+
+                <div class="section">
+                    <div class="section-title">Contact</div>
+                    <div class="info">Adresse<span>Ville, Pays</span></div>
+                    <div class="info">Email<span>email@domain.com</span></div>
+                    <div class="info">Téléphone<span>+33 6 00 00 00 00</span></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Compétences Clés</div>
+                    <ul class="list">
+                        <li>Gestion stratégique</li>
+                        <li>Pilotage opérationnel</li>
+                        <li>Analyse & reporting</li>
+                        <li>Leadership transverse</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Langues</div>
+                    <ul class="list">
+                        <li>Français — Natif</li>
+                        <li>Anglais — Avancé</li>
+                    </ul>
+                </div>
+
+            </aside>
+
+            <!-- RIGHT -->
+            <main class="right">
+
+                <div class="block">
+                    <div class="block-title">Expériences Professionnelles</div>
+
+                    <div class="entry">
+                        <div class="date">2019 – 2024</div>
+                        <div>
+                            <h4>Responsable / Manager — Entreprise</h4>
+                            <p>
+                                Structuration des processus, pilotage d'équipes,
+                                sécurisation des livrables et amélioration continue
+                                de la performance globale.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="entry">
+                        <div class="date">2015 – 2019</div>
+                        <div>
+                            <h4>Poste senior — Entreprise</h4>
+                            <p>
+                                Contribution stratégique aux décisions, coordination
+                                multi-acteurs et gestion d'environnements exigeants.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block">
+                    <div class="block-title">Formations</div>
+
+                    <div class="entry">
+                        <div class="date">2020</div>
+                        <div>
+                            <h4>Diplôme — Établissement</h4>
+                            <p>Spécialisation / Domaine d'expertise</p>
+                        </div>
+                    </div>
+
+                    <div class="entry">
+                        <div class="date">2016</div>
+                        <div>
+                            <h4>Diplôme — Établissement</h4>
+                            <p>Spécialisation / Domaine d'expertise</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

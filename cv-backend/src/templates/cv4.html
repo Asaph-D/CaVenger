@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CV Template</title>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    color: #333;
+}
+
+/* Container centré avec largeur fixe */
+.container {
+    width: 800px;
+    margin: 0 auto;
+    padding: 20px 10px;
+}
+
+/* Nom + Métier */
+.header-title {
+    background: #000;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    font-weight: 300;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+.header-title h2 {
+    margin: 5px 0 0;
+    font-weight: 300;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* Contact infos */
+.contact-info {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0 20px;
+    font-size: 13px;
+    color: #666;
+}
+
+.contact-info div {
+    text-align: center;
+}
+
+.contact-info strong {
+    display: block;
+    color: #000;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+/* Section headers */
+.section-header-pro {
+    background: #000;
+    color: #fff;
+    padding: 8px 15px;
+    display: inline-block;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+}
+
+.section-header-exp {
+    background: #000;
+    margin-left: 43%;
+    color: #fff;
+    padding: 8px 15px;
+    display: inline-block;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+}
+
+.section-header-for {
+    margin-left: 82.4%;
+    background: #000;
+    color: #fff;
+    padding: 8px 15px;
+    display: inline-block;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+}
+
+/* Ligne noire horizontale */
+.separator {
+    border-top: 1.5px solid #000;
+}
+
+/* Profil section */
+.profil-text {
+    margin-bottom: 50px;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    text-align: center;
+    padding: 0 20px;
+}
+
+/* EXPÉRIENCES and FORMATIONS layout */
+.experience, .formations {
+    margin-bottom: 50px;
+}
+
+.entry {
+    display: flex;
+    margin-bottom: 30px;
+}
+
+.entry .dates {
+    width: 100px;
+    font-size: 13px;
+    color: #999;
+    line-height: 1.4;
+    padding-right: 15px;
+}
+
+.entry .details {
+    flex: 1;
+    font-size: 14px;
+    color: #444;
+}
+
+.entry .details strong {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.entry .details span {
+    font-weight: 600;
+    font-size: 13px;
+    color: #777;
+    display: block;
+    margin-bottom: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header-title">
+    <h1>NOM PRENOM</h1>
+    <h2>METIER</h2>
+  </div>
+
+  <div class="contact-info">
+    <div>
+      <strong>ADRESSE</strong>
+      Mon adresse postale
+    </div>
+    <div>
+      <strong>E-MAIL</strong>
+      votremail@gmail.com
+    </div>
+    <div>
+      <strong>TELEPHONE</strong>
+      01 02 03 04 05
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="section-header-pro">PROFIL</div>
+  <p class="profil-text">
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est. Duis vel magna quis tellus dapibus scelerisque. Nullam augue lorem, luctus vel consequat at, egestas a tellus. Donec eget egestas est.
+  </p>
+
+  <div class="separator"></div>
+
+  <div class="section-header-exp">EXPÉRIENCES</div>
+
+  <div class="experience">
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>POSTE DE L'EXPÉRIENCE - ENTREPRISE</strong>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est. Duis vel magna quis tellus dapibus scelerisque.
+      </div>
+    </div>
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>POSTE DE L'EXPÉRIENCE - ENTREPRISE</strong>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est. Duis vel magna quis tellus dapibus scelerisque.
+      </div>
+    </div>
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>POSTE DE L'EXPÉRIENCE - ENTREPRISE</strong>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est. Duis vel magna quis tellus dapibus scelerisque.
+      </div>
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="section-header-for">FORMATIONS</div>
+
+  <div class="formations">
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>DIPLÔME</strong>
+        <span>ETABLISSEMENT</span>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est.
+      </div>
+    </div>
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>DIPLÔME</strong>
+        <span>ETABLISSEMENT</span>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est.
+      </div>
+    </div>
+    <div class="entry">
+      <div class="dates">
+        sept 2016<br />aout 2018
+      </div>
+      <div class="details">
+        <strong>DIPLÔME</strong>
+        <span>ETABLISSEMENT</span>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque non laoreet est.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

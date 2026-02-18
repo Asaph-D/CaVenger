@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CV – Timeline Pro</title>
+
+<style>
+:root{
+    --accent:#2b7a78;
+    --dark:#1c1c1c;
+    --muted:#6e6e6e;
+    --bg:#f4f6f7;
+}
+
+*{
+    box-sizing:border-box;
+    font-family:"Segoe UI", Arial, sans-serif;
+}
+
+body{
+    margin:0;
+    padding:40px;
+    background:#e9e9e9;
+}
+
+.cv{
+    width:900px;
+    margin:auto;
+    background:#fff;
+    padding:50px 60px;
+    box-shadow:0 20px 50px rgba(0,0,0,.15);
+}
+
+/* ===== HEADER ===== */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:50px;
+}
+
+.identity h1{
+    margin:0;
+    font-size:38px;
+    color:var(--dark);
+}
+
+.identity h2{
+    margin:6px 0 0;
+    font-size:18px;
+    font-weight:500;
+    color:var(--accent);
+}
+
+.identity p{
+    margin-top:18px;
+    max-width:600px;
+    font-size:14.5px;
+    line-height:1.6;
+    color:var(--muted);
+}
+
+.photo{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    overflow:hidden;
+}
+
+.photo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* ===== INFO BAR ===== */
+.infobar{
+    display:flex;
+    justify-content:space-between;
+    font-size:13.5px;
+    color:var(--muted);
+    margin-bottom:50px;
+}
+
+/* ===== TIMELINE ===== */
+.timeline{
+    position:relative;
+    padding:0 0 0 0;
+}
+
+.timeline::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:var(--accent);
+    transform:translateX(-50%);
+}
+
+/* ITEM */
+.entry{
+    display:grid;
+    grid-template-columns:1fr 40px 1fr;
+    margin-bottom:45px;
+}
+
+.entry:nth-child(even) .content{
+    grid-column:3;
+    text-align:left;
+}
+
+.entry:nth-child(even) .date{
+    text-align:right;
+}
+
+.entry:nth-child(odd) .content{
+    grid-column:1;
+    text-align:right;
+}
+
+.entry:nth-child(odd) .date{
+    text-align:left;
+}
+
+.date{
+    font-size:13px;
+    color:var(--muted);
+    padding-top:4px;
+}
+
+.dot{
+    width:14px;
+    height:14px;
+    background:var(--accent);
+    border-radius:50%;
+    margin:auto;
+    position:relative;
+    z-index:2;
+}
+
+.content{
+    padding:0 20px;
+}
+
+.content h3{
+    margin:0;
+    font-size:15px;
+    color:var(--dark);
+}
+
+.content span{
+    display:block;
+    margin-top:4px;
+    font-size:13.5px;
+    color:var(--accent);
+}
+
+.content p{
+    margin-top:8px;
+    font-size:14px;
+    line-height:1.6;
+    color:#555;
+}
+
+/* ===== SECTIONS ===== */
+.section-title{
+    margin:60px 0 35px;
+    font-size:18px;
+    color:var(--dark);
+    position:relative;
+}
+
+.section-title::after{
+    content:"";
+    display:block;
+    width:60px;
+    height:3px;
+    background:var(--accent);
+    margin-top:10px;
+}
+
+@media print{
+    body{
+        padding:0;
+        background:#fff;
+    }
+    
+    .cv{
+        box-shadow:none;
+        border-radius:0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="identity">
+            <h1>NOM PRÉNOM</h1>
+            <h2>POSTE / EXPERTISE</h2>
+            <p>
+                Professionnel(le) expérimenté(e), structuré(e) et orienté(e) résultats,
+                avec une évolution de carrière cohérente et progressive.
+            </p>
+        </div>
+
+        <div class="photo">
+            <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo">
+        </div>
+    </div>
+
+    <!-- INFO BAR -->
+    <div class="infobar">
+        <div>Email : email@domain.com</div>
+        <div>Téléphone : +33 6 00 00 00 00</div>
+        <div>Ville, Pays</div>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="section-title">EXPÉRIENCES PROFESSIONNELLES</div>
+
+    <div class="timeline">
+
+        <div class="entry">
+            <div class="content">
+                <h3>Responsable / Manager</h3>
+                <span>Entreprise</span>
+                <p>
+                    Pilotage d’activités stratégiques, coordination d’équipes,
+                    amélioration continue et sécurisation des livrables.
+                </p>
+            </div>
+
+            <div class="dot"></div>
+
+            <div class="date">2019 – 2024</div>
+        </div>
+
+        <div class="entry">
+            <div class="date">2016 – 2019</div>
+
+            <div class="dot"></div>
+
+            <div class="content">
+                <h3>Poste confirmé</h3>
+                <span>Entreprise</span>
+                <p>
+                    Contribution opérationnelle majeure, montée en compétence,
+                    gestion de projets transverses.
+                </p>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="content">
+                <h3>Poste initial</h3>
+                <span>Entreprise</span>
+                <p>
+                    Développement des bases métier, rigueur analytique
+                    et premières responsabilités.
+                </p>
+            </div>
+
+            <div class="dot"></div>
+
+            <div class="date">2013 – 2016</div>
+        </div>
+
+    </div>
+
+    <!-- FORMATION -->
+    <div class="section-title">FORMATIONS</div>
+
+    <div class="timeline">
+
+        <div class="entry">
+            <div class="content">
+                <h3>Diplôme / Certification</h3>
+                <span>Établissement</span>
+                <p>Domaine de spécialisation</p>
+            </div>
+
+            <div class="dot"></div>
+
+            <div class="date">2020</div>
+        </div>
+
+        <div class="entry">
+            <div class="date">2016</div>
+
+            <div class="dot"></div>
+
+            <div class="content">
+                <h3>Diplôme</h3>
+                <span>Établissement</span>
+                <p>Domaine de spécialisation</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

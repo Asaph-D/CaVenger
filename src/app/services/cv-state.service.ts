@@ -23,7 +23,6 @@ export class CVStateService {
   currentCV = computed(() => this.state().currentCV);
   savedCVs = computed(() => this.state().savedCVs);
   availableThemes = computed(() => this.state().availableThemes);
-  availableTemplates = computed(() => this.state().availableTemplates);
   isEditing = computed(() => this.state().isEditing);
   selectedSection = computed(() => this.state().selectedSection);
   selectedElement = computed(() => this.state().selectedElement);
@@ -104,63 +103,6 @@ export class CVStateService {
     this.saveToStorage();
   }
 
-  // Export functionality from service
-  async exportToPDF(): Promise<void> {
-    const { jsPDF } = await import('jspdf');
-    const html2canvas = (await import('html2canvas')).default;
-
-    const element = document.querySelector('.cv-preview-container') as HTMLElement;
-    if (!element) return;
-
-    try {
-      // Ajoutez la classe capture-mode pour réinitialiser les styles
-      element.classList.add('capture-mode');
-
-      // Capturez avec des options optimisées
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        x: 0,
-        y: 0,
-        scrollX: 0,
-        scrollY: 0,
-        logging: true,
-      });
-
-      // Retirez la classe après la capture
-      element.classList.remove('capture-mode');
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0; // Pas de décalage initial
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      const currentCV = this.currentCV();
-      const fileName = `CV_${currentCV?.personalInfo.firstName}_${currentCV?.personalInfo.lastName}.pdf`;
-      pdf.save(fileName);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      throw error;
-    }
-  }
 
   // Section management
   addSection(sectionType: string, position: 'left' | 'right' = 'right', options?: { title?: string; data?: any }): void {
@@ -623,6 +565,17 @@ export class CVStateService {
     });
   }
 
+  updateCVData(updates: Partial<CVData>): void {
+    const currentCV = this.state().currentCV;
+    if (!currentCV) return;
+
+    const updatedCV = { ...currentCV, ...updates };
+    this.updateState({
+      currentCV: updatedCV,
+      isDirty: true
+    });
+  }
+
   applyTemplate(template: CVTemplate): void {
     const currentCV = this.state().currentCV;
     if (!currentCV) return;
@@ -634,6 +587,54 @@ export class CVStateService {
       currentCV: { ...currentCV },
       isDirty: true
     });
+  }
+
+  /**
+   * Convertit un CVTemplateSelector en CVTemplate pour l'application
+   */
+  convertTemplateSelectorToCVTemplate(templateSelector: { id: string; name: string; description: string; layout: string }): CVTemplate {
+    const defaultTemplates = this.getDefaultTemplates();
+    const baseTemplate = defaultTemplates[0] || this.getDefaultCVTemplate();
+    
+    // Adapter le layout selon le template sélectionné
+    let layout: 'two-column' | 'single-column' | 'modern' | 'classic' = 'two-column';
+    if (templateSelector.layout === 'single-column') {
+      layout = 'single-column';
+    } else if (templateSelector.layout === 'timeline' || templateSelector.layout === 'sidebar') {
+      layout = 'modern';
+    }
+
+    return {
+      ...baseTemplate,
+      id: templateSelector.id,
+      name: templateSelector.name,
+      description: templateSelector.description,
+      layout: layout,
+      thumbnail: ''
+    };
+  }
+
+  private getDefaultCVTemplate(): CVTemplate {
+    return {
+      id: 'default',
+      name: 'Default',
+      description: 'Template par défaut',
+      thumbnail: '',
+      layout: 'two-column',
+      sections: [],
+      theme: {
+        id: 'default',
+        name: 'Default',
+        primaryColor: '#3b82f6',
+        secondaryColor: '#2563eb',
+        accentColor: '#60a5fa',
+        backgroundColor: '#ffffff',
+        textColor: '#1f2937',
+        fontFamily: { heading: 'Arial', body: 'Arial' },
+        layout: 'two-column'
+      },
+      preview: ''
+    };
   }
 
   // UI state management
@@ -707,7 +708,7 @@ export class CVStateService {
 
   private getDefaultContactInfo(): ContactInfo[] {
     return [
-      { id: '1', icon: 'fas fa-envelope', label: 'Email', value: 'email@exemple.com', type: 'email', visible: true },
+      { id: '1', icon: 'fas fa-envelope', label: 'Email', value: 'email@domain.com', type: 'email', visible: true },
       { id: '2', icon: 'fas fa-phone', label: 'Téléphone', value: '+33 6 12 34 56 78', type: 'phone', visible: true },
       { id: '3', icon: 'fas fa-map-marker-alt', label: 'Adresse', value: 'Ville, Pays', type: 'address', visible: true }
     ];
@@ -1128,7 +1129,7 @@ export class CVStateService {
           ...this.state(),
           ...parsedState,
           availableThemes: this.getDefaultThemes(),
-          availableTemplates: this.getDefaultTemplates()
+          availableTemplates: this.getDefaultTemplates() // Conservé pour compatibilité interne
         });
       }
     } catch (error) {

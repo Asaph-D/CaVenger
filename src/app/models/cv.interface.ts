@@ -136,6 +136,16 @@ export interface CVData {
      */
     profilePicturePosition?: 'center-top' | 'left';
   };
+  externalTemplate?: {
+    id: string;
+    htmlStructure: string;
+    cssStyles: string;
+  };
+  watermarkStyle?: {
+    id: string;
+    backgroundStyle: string;
+    designPattern: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

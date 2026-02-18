@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { CVSection } from '../../models/cv.interface';
 import { CVStateService } from '../../services/cv-state.service';
 import { ThemeService } from '../../services/theme.service';
+import { ModalService } from '../../services/modal.service';
 import { EducationEditorComponent } from './education-editor/education-editor.component';
 import { ExperienceEditorComponent } from './experience-editor/experience-editor.component';
 import { PersonalInfoEditorComponent } from './personal-info-editor/personal-info-editor.component';
 import { SkillsEditorComponent } from './skills-editor/skills-editor.component';
 import { ContactComponent } from './contact/contact.component';
+import { canAddItem, canRemoveItem, getMaxItems, getMinItems } from '../../config/section-limits.config';
 
 @Component({
   selector: 'app-section-editor',
@@ -60,10 +62,18 @@ import { ContactComponent } from './contact/contact.component';
           <!-- Languages Editor -->
           <div *ngSwitchCase="'languages'" class="space-y-4">
             <div class="flex items-center justify-between mb-4">
-              <h4 class="text-lg font-semibold">Langues</h4>
+              <div>
+                <h4 class="text-lg font-semibold">Langues</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {{ (currentCV()?.languages || []).length }} / {{ getMaxItems('languages') }} langues
+                </p>
+              </div>
               <button
                 (click)="addLanguage()"
-                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                [disabled]="!canAddLanguage()"
+                [class.opacity-50]="!canAddLanguage()"
+                [class.cursor-not-allowed]="!canAddLanguage()"
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
               </button>
@@ -79,7 +89,11 @@ import { ContactComponent } from './contact/contact.component';
                     placeholder="Nom de la langue">
                   <button
                     (click)="removeLanguage(language.id)"
-                    class="text-red-500 hover:text-red-700 transition-colors">
+                    [disabled]="!canRemoveLanguage()"
+                    [class.opacity-50]="!canRemoveLanguage()"
+                    [class.cursor-not-allowed]="!canRemoveLanguage()"
+                    class="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    [title]="getRemoveLanguageButtonTitle()">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -107,10 +121,18 @@ import { ContactComponent } from './contact/contact.component';
           <!-- Interests Editor -->
           <div *ngSwitchCase="'interests'" class="space-y-4">
             <div class="flex items-center justify-between mb-4">
-              <h4 class="text-lg font-semibold">Loisirs</h4>
+              <div>
+                <h4 class="text-lg font-semibold">Loisirs</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {{ (currentCV()?.interests || []).length }} / {{ getMaxItems('interests') }} loisirs
+                </p>
+              </div>
               <button
                 (click)="addInterest()"
-                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                [disabled]="!canAddInterest()"
+                [class.opacity-50]="!canAddInterest()"
+                [class.cursor-not-allowed]="!canAddInterest()"
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
               </button>
@@ -138,7 +160,11 @@ import { ContactComponent } from './contact/contact.component';
                   placeholder="Nom du loisir">
                 <button
                   (click)="removeInterest(interest.id)"
-                  class="text-red-500 hover:text-red-700 transition-colors">
+                  [disabled]="!canRemoveInterest()"
+                  [class.opacity-50]="!canRemoveInterest()"
+                  [class.cursor-not-allowed]="!canRemoveInterest()"
+                  class="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  [title]="getRemoveInterestButtonTitle()">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -192,6 +218,7 @@ import { ContactComponent } from './contact/contact.component';
 export class SectionEditorComponent {
   private readonly cvService = inject(CVStateService);
   private readonly themeService = inject(ThemeService);
+  private readonly modalService = inject(ModalService);
   private cdr = inject(ChangeDetectorRef);
 
   currentCV = this.cvService.currentCV;
@@ -281,6 +308,14 @@ export class SectionEditorComponent {
 
   // Language methods
   addLanguage(): void {
+    const languages = this.currentCV()?.languages || [];
+    if (!canAddItem('languages', languages.length)) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('languages')} langues.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     this.cvService.addLanguage({
       name: 'Nouvelle langue',
       level: 50,
@@ -294,11 +329,37 @@ export class SectionEditorComponent {
   }
 
   removeLanguage(languageId: string): void {
+    const languages = this.currentCV()?.languages || [];
+    if (!canRemoveItem('languages', languages.length)) {
+      this.modalService.showWarning(
+        `Vous devez conserver au minimum ${getMinItems('languages')} langue(s).`,
+        'Limite minimale'
+      );
+      return;
+    }
     this.cvService.removeLanguage(languageId);
+  }
+
+  canAddLanguage(): boolean {
+    const languages = this.currentCV()?.languages || [];
+    return canAddItem('languages', languages.length);
+  }
+
+  canRemoveLanguage(): boolean {
+    const languages = this.currentCV()?.languages || [];
+    return canRemoveItem('languages', languages.length);
   }
 
   // Interest methods
   addInterest(): void {
+    const interests = this.currentCV()?.interests || [];
+    if (!canAddItem('interests', interests.length)) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('interests')} loisirs.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     this.cvService.addInterest({
       name: 'Nouveau loisir',
       icon: 'fas fa-star',
@@ -316,7 +377,47 @@ export class SectionEditorComponent {
   }
 
   removeInterest(interestId: string): void {
+    const interests = this.currentCV()?.interests || [];
+    if (!canRemoveItem('interests', interests.length)) {
+      this.modalService.showWarning(
+        `Vous devez conserver au minimum ${getMinItems('interests')} loisir(s).`,
+        'Limite minimale'
+      );
+      return;
+    }
     this.cvService.removeInterest(interestId);
+  }
+
+  canAddInterest(): boolean {
+    const interests = this.currentCV()?.interests || [];
+    return canAddItem('interests', interests.length);
+  }
+
+  canRemoveInterest(): boolean {
+    const interests = this.currentCV()?.interests || [];
+    return canRemoveItem('interests', interests.length);
+  }
+
+  getMaxItems(sectionType: string): number {
+    return getMaxItems(sectionType);
+  }
+
+  getMinItems(sectionType: string): number {
+    return getMinItems(sectionType);
+  }
+
+  getRemoveLanguageButtonTitle(): string {
+    if (this.canRemoveLanguage()) {
+      return 'Supprimer la langue';
+    }
+    return `Minimum ${this.getMinItems('languages')} langue(s) requise(s)`;
+  }
+
+  getRemoveInterestButtonTitle(): string {
+    if (this.canRemoveInterest()) {
+      return 'Supprimer le loisir';
+    }
+    return `Minimum ${this.getMinItems('interests')} loisir(s) requis`;
   }
 
   // Custom section methods

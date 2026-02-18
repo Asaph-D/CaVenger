@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV – Timeline Pro</title>
+
+<style>
+:root{
+    --accent:#2b7a78;
+    --accent-light:#3d9b98;
+    --accent-dark:#1e5e5c;
+    --dark:#1c1c1c;
+    --muted:#6e6e6e;
+    --bg:#f4f6f7;
+}
+
+*{
+    box-sizing:border-box;
+    font-family:"Segoe UI", Arial, sans-serif;
+}
+
+body{
+    margin:0;
+    padding:20px;
+    background:linear-gradient(135deg, #e9e9e9 0%, #f4f6f7 100%);
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+.cv{
+    max-width:210mm;
+    width:100%;
+    margin:auto;
+    background:#fff;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.12);
+    border-radius:12px;
+}
+
+/* ===== SVG DÉCORATIFS - COIN SUPÉRIEUR GAUCHE & BAS DROIT ===== */
+.decoration-top{
+    position:absolute;
+    top:0;
+    left:0;
+    width:200px;
+    height:140px;
+    pointer-events:none;
+    z-index:1;
+    opacity:0.85;
+}
+
+.decoration-bottom{
+    position:absolute;
+    bottom:0;
+    right:0;
+    width:180px;
+    height:130px;
+    pointer-events:none;
+    z-index:1;
+    opacity:0.75;
+}
+
+.cv-content{
+    position:relative;
+    z-index:2;
+    padding:30px 40px;
+}
+
+/* ===== HEADER ===== */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:25px;
+    padding-bottom:20px;
+    position:relative;
+}
+
+.header::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:2px;
+    background:linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+}
+
+.identity h1{
+    margin:0;
+    font-size:32px;
+    font-weight:700;
+    color:var(--dark);
+    letter-spacing:-0.5px;
+    position:relative;
+    display:inline-block;
+}
+
+.identity h1::after{
+    content:"";
+    position:absolute;
+    bottom:-6px;
+    left:0;
+    width:60px;
+    height:3px;
+    background:var(--accent);
+    border-radius:2px;
+}
+
+.identity h2{
+    margin:12px 0 0;
+    font-size:16px;
+    font-weight:600;
+    color:var(--accent);
+    letter-spacing:0.3px;
+}
+
+.identity p{
+    margin-top:14px;
+    max-width:500px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--muted);
+}
+
+.photo{
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    overflow:hidden;
+    border:4px solid var(--accent);
+    box-shadow:0 8px 20px rgba(43,122,120,.25);
+    flex-shrink:0;
+    position:relative;
+}
+
+.photo::before{
+    content:"";
+    position:absolute;
+    inset:-5px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--accent-light), var(--accent-dark));
+    z-index:-1;
+}
+
+.photo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* ===== INFO BAR ===== */
+.infobar{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:30px;
+    padding:16px 20px;
+    background:linear-gradient(135deg, var(--bg) 0%, #fff 100%);
+    border-radius:6px;
+    border-left:3px solid var(--accent);
+    box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+
+.infobar div{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    position:relative;
+    padding-left:16px;
+}
+
+.infobar div::before{
+    content:"";
+    position:absolute;
+    left:0;
+    width:10px;
+    height:10px;
+    background:var(--accent);
+    border-radius:2px;
+    transform:rotate(45deg);
+}
+
+/* ===== TIMELINE ===== */
+.timeline{
+    position:relative;
+    padding:0;
+}
+
+.timeline::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:3px;
+    background:linear-gradient(180deg, var(--accent) 0%, var(--accent-light) 50%, var(--accent) 100%);
+    transform:translateX(-50%);
+    border-radius:2px;
+    box-shadow:0 0 6px rgba(43,122,120,.25);
+}
+
+/* ITEM */
+.entry{
+    display:grid;
+    grid-template-columns:1fr 40px 1fr;
+    margin-bottom:35px;
+    position:relative;
+}
+
+.entry:nth-child(even) .content{
+    grid-column:3;
+    text-align:left;
+}
+
+.entry:nth-child(even) .date{
+    text-align:right;
+}
+
+.entry:nth-child(odd) .content{
+    grid-column:1;
+    text-align:right;
+}
+
+.entry:nth-child(odd) .date{
+    text-align:left;
+}
+
+.date{
+    font-size:12px;
+    font-weight:700;
+    color:var(--accent);
+    padding-top:4px;
+    letter-spacing:0.2px;
+}
+
+.dot{
+    width:14px;
+    height:14px;
+    background:#fff;
+    border:4px solid var(--accent);
+    border-radius:50%;
+    margin:auto;
+    position:relative;
+    z-index:3;
+    box-shadow:0 0 0 4px #fff, 0 4px 12px rgba(43,122,120,.25);
+}
+
+.content{
+    padding:0 20px;
+    position:relative;
+}
+
+.entry:nth-child(odd) .content::before,
+.entry:nth-child(even) .content::before{
+    content:"";
+    position:absolute;
+    top:8px;
+    width:16px;
+    height:2px;
+    background:var(--accent);
+    opacity:0.3;
+}
+
+.entry:nth-child(odd) .content::before{
+    right:0;
+}
+
+.entry:nth-child(even) .content::before{
+    left:0;
+}
+
+.content h3{
+    margin:0;
+    font-size:14px;
+    font-weight:700;
+    color:var(--dark);
+    line-height:1.3;
+}
+
+.content span{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--accent);
+}
+
+.content p{
+    margin-top:8px;
+    font-size:12px;
+    line-height:1.6;
+    color:#555;
+}
+
+/* ===== SECTIONS ===== */
+.section-title{
+    margin:40px 0 30px;
+    font-size:16px;
+    font-weight:700;
+    color:var(--dark);
+    position:relative;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    padding-left:20px;
+}
+
+.section-title::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:10px;
+    height:10px;
+    background:var(--accent);
+    border-radius:2px;
+    transform:translateY(-50%) rotate(45deg);
+}
+
+.section-title::after{
+    content:"";
+    display:block;
+    width:60px;
+    height:3px;
+    background:linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+    margin-top:10px;
+    margin-left:20px;
+    border-radius:2px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px){
+    .cv-content{
+        padding:35px 30px;
+    }
+    
+    .header{
+        flex-direction:column-reverse;
+        align-items:center;
+        text-align:center;
+    }
+    
+    .photo{
+        margin-bottom:25px;
+    }
+    
+    .identity h1::after{
+        left:50%;
+        transform:translateX(-50%);
+    }
+    
+    .identity p{
+        max-width:100%;
+    }
+    
+    .infobar{
+        flex-direction:column;
+        gap:12px;
+    }
+    
+    .timeline::before{
+        left:25px;
+    }
+    
+    .entry{
+        grid-template-columns:50px 1fr;
+        margin-bottom:40px;
+    }
+    
+    .entry:nth-child(even) .content,
+    .entry:nth-child(odd) .content{
+        grid-column:2;
+        text-align:left;
+        padding-left:25px;
+    }
+    
+    .entry:nth-child(even) .date,
+    .entry:nth-child(odd) .date{
+        grid-column:2;
+        text-align:left;
+        margin-bottom:8px;
+        padding-left:25px;
+    }
+    
+    .entry:nth-child(odd) .content::before,
+    .entry:nth-child(even) .content::before{
+        left:0;
+    }
+    
+    .dot{
+        grid-column:1;
+        grid-row:1 / span 2;
+    }
+    
+    .decoration-top,
+    .decoration-bottom{
+        display:none;
+    }
+}
+
+@media print{
+    body{
+        padding:0;
+        background:#fff;
+    }
+    
+    .cv{
+        box-shadow:none;
+        border-radius:0;
+        max-width:100%;
+        min-height:297mm;
+    }
+    
+    .decoration-top,
+    .decoration-bottom{
+        opacity:0.5;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="cv">
+
+    <!-- SVG DÉCORATIF COIN SUPÉRIEUR GAUCHE -->
+    <div class="decoration-top">
+        <svg viewBox="0 0 300 200" preserveAspectRatio="xMinYMin meet">
+            <defs>
+                <linearGradient id="grad-top-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#2b7a78;stop-opacity:0.15" />
+                    <stop offset="100%" style="stop-color:#3d9b98;stop-opacity:0.08" />
+                </linearGradient>
+                <linearGradient id="grad-top-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#1e5e5c;stop-opacity:0.12" />
+                    <stop offset="100%" style="stop-color:#2b7a78;stop-opacity:0.06" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Forme organique principale -->
+            <path d="M0,0 Q80,0 120,40 T200,80 L200,0 Z" fill="url(#grad-top-1)"/>
+            
+            <!-- Courbe secondaire -->
+            <path d="M0,0 Q50,30 100,50 T180,90 L0,90 Z" fill="url(#grad-top-2)"/>
+            
+            <!-- Cercles décoratifs -->
+            <circle cx="140" cy="60" r="30" fill="#2b7a78" opacity="0.06"/>
+            <circle cx="90" cy="100" r="20" fill="#3d9b98" opacity="0.08"/>
+            <circle cx="40" cy="40" r="15" fill="#2b7a78" opacity="0.1"/>
+            
+            <!-- Lignes d'accent -->
+            <line x1="0" y1="120" x2="150" y2="120" stroke="#2b7a78" stroke-width="3" opacity="0.12"/>
+            <line x1="0" y1="135" x2="100" y2="135" stroke="#3d9b98" stroke-width="2" opacity="0.1"/>
+        </svg>
+    </div>
+
+    <!-- SVG DÉCORATIF COIN INFÉRIEUR DROIT -->
+    <div class="decoration-bottom">
+        <svg viewBox="0 0 250 180" preserveAspectRatio="xMaxYMax meet">
+            <defs>
+                <linearGradient id="grad-bottom-1" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" style="stop-color:#2b7a78;stop-opacity:0.12" />
+                    <stop offset="100%" style="stop-color:#3d9b98;stop-opacity:0.06" />
+                </linearGradient>
+                <linearGradient id="grad-bottom-2" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1e5e5c;stop-opacity:0.1" />
+                    <stop offset="100%" style="stop-color:#2b7a78;stop-opacity:0.05" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Forme géométrique -->
+            <path d="M250,180 L250,100 Q200,120 150,100 T50,130 L50,180 Z" fill="url(#grad-bottom-1)"/>
+            
+            <!-- Vague -->
+            <path d="M250,180 Q200,150 150,155 T80,170 L250,180 Z" fill="url(#grad-bottom-2)"/>
+            
+            <!-- Éléments décoratifs -->
+            <circle cx="180" cy="120" r="25" fill="#2b7a78" opacity="0.07"/>
+            <circle cx="220" cy="90" r="18" fill="#3d9b98" opacity="0.09"/>
+            
+            <!-- Petits accents -->
+            <rect x="160" y="145" width="60" height="2" fill="#2b7a78" opacity="0.12" rx="1"/>
+            <rect x="180" y="160" width="40" height="2" fill="#3d9b98" opacity="0.1" rx="1"/>
+        </svg>
+    </div>
+
+    <div class="cv-content">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="identity">
+                <h1>NOM PRÉNOM</h1>
+                <h2>POSTE / EXPERTISE</h2>
+                <p>
+                    Professionnel(le) expérimenté(e), structuré(e) et orienté(e) résultats,
+                    avec une évolution de carrière cohérente et progressive.
+                </p>
+            </div>
+
+            <div class="photo">
+                <img src="modele-conception-illustration-vectorielle-du-profil-icone_827767-5831.avif" alt="Photo">
+            </div>
+        </div>
+
+        <!-- INFO BAR -->
+        <div class="infobar">
+            <div>Email : email@domain.com</div>
+            <div>Téléphone : +33 6 00 00 00 00</div>
+            <div>Ville, Pays</div>
+        </div>
+
+        <!-- EXPERIENCE -->
+        <div class="section-title">Expériences Professionnelles</div>
+
+        <div class="timeline">
+
+            <div class="entry">
+                <div class="content">
+                    <h3>Responsable / Manager</h3>
+                    <span>Entreprise</span>
+                    <p>
+                        Pilotage d'activités stratégiques, coordination d'équipes,
+                        amélioration continue et sécurisation des livrables.
+                    </p>
+                </div>
+
+                <div class="dot"></div>
+
+                <div class="date">2019 – 2024</div>
+            </div>
+
+            <div class="entry">
+                <div class="date">2016 – 2019</div>
+
+                <div class="dot"></div>
+
+                <div class="content">
+                    <h3>Poste confirmé</h3>
+                    <span>Entreprise</span>
+                    <p>
+                        Contribution opérationnelle majeure, montée en compétence,
+                        gestion de projets transverses.
+                    </p>
+                </div>
+            </div>
+
+            <div class="entry">
+                <div class="content">
+                    <h3>Poste initial</h3>
+                    <span>Entreprise</span>
+                    <p>
+                        Développement des bases métier, rigueur analytique
+                        et premières responsabilités.
+                    </p>
+                </div>
+
+                <div class="dot"></div>
+
+                <div class="date">2013 – 2016</div>
+            </div>
+
+        </div>
+
+        <!-- FORMATION -->
+        <div class="section-title">Formations</div>
+
+        <div class="timeline">
+
+            <div class="entry">
+                <div class="content">
+                    <h3>Diplôme / Certification</h3>
+                    <span>Établissement</span>
+                    <p>Domaine de spécialisation</p>
+                </div>
+
+                <div class="dot"></div>
+
+                <div class="date">2020</div>
+            </div>
+
+            <div class="entry">
+                <div class="date">2016</div>
+
+                <div class="dot"></div>
+
+                <div class="content">
+                    <h3>Diplôme</h3>
+                    <span>Établissement</span>
+                    <p>Domaine de spécialisation</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

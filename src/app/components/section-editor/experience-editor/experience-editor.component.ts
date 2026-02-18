@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CVStateService } from '../../../services/cv-state.service';
 import { ThemeService } from '../../../services/theme.service';
+import { ModalService } from '../../../services/modal.service';
 import { ExperienceItem } from '../../../models/cv.interface';
+import { canAddItem, canRemoveItem, getMaxItems, getMinItems } from '../../../config/section-limits.config';
 
 @Component({
   selector: 'app-experience-editor',
@@ -12,10 +14,18 @@ import { ExperienceItem } from '../../../models/cv.interface';
   template: `
     <div class="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       <div class="flex items-center justify-between mb-6">
-        <h4 class="text-lg font-semibold">Expérience Professionnelle</h4>
+        <div>
+          <h4 class="text-lg font-semibold">Expérience Professionnelle</h4>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ experiences.length }} / {{ getMaxItems('experience') }} expériences
+          </p>
+        </div>
         <button
           (click)="addExperience()"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+          [disabled]="!canAdd()"
+          [class.opacity-50]="!canAdd()"
+          [class.cursor-not-allowed]="!canAdd()"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fas fa-plus mr-2"></i>
           Ajouter
         </button>
@@ -31,8 +41,11 @@ import { ExperienceItem } from '../../../models/cv.interface';
             <h5 class="font-medium">Expérience {{ getExperienceIndex(exp.id) + 1 }}</h5>
             <button
               (click)="removeExperience(exp.id)"
-              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors p-2"
-              title="Supprimer l'expérience">
+              [disabled]="!canRemove()"
+              [class.opacity-50]="!canRemove()"
+              [class.cursor-not-allowed]="!canRemove()"
+              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              [title]="getRemoveButtonTitle()">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -245,6 +258,7 @@ import { ExperienceItem } from '../../../models/cv.interface';
 export class ExperienceEditorComponent {
   private readonly cvService = inject(CVStateService);
   private readonly themeService = inject(ThemeService);
+  private readonly modalService = inject(ModalService);
 
   activeBulletMenuId: string | null = null;
 
@@ -253,6 +267,13 @@ export class ExperienceEditorComponent {
   }
 
   addExperience(): void {
+    if (!this.canAdd()) {
+      this.modalService.showWarning(
+        `Vous avez atteint le maximum de ${getMaxItems('experience')} expériences.`,
+        'Limite atteinte'
+      );
+      return;
+    }
     this.cvService.addExperience({
       title: 'Nouveau poste',
       company: 'Entreprise',
@@ -271,9 +292,39 @@ export class ExperienceEditorComponent {
   }
 
   removeExperience(experienceId: string): void {
+    if (!this.canRemove()) {
+      this.modalService.showWarning(
+        `Vous devez conserver au minimum ${getMinItems('experience')} expérience(s).`,
+        'Limite minimale'
+      );
+      return;
+    }
     if (confirm('Êtes-vous sûr de vouloir supprimer cette expérience ?')) {
       this.cvService.removeExperience(experienceId);
     }
+  }
+
+  canAdd(): boolean {
+    return canAddItem('experience', this.experiences.length);
+  }
+
+  canRemove(): boolean {
+    return canRemoveItem('experience', this.experiences.length);
+  }
+
+  getMaxItems(sectionType: string): number {
+    return getMaxItems(sectionType);
+  }
+
+  getMinItems(sectionType: string): number {
+    return getMinItems(sectionType);
+  }
+
+  getRemoveButtonTitle(): string {
+    if (this.canRemove()) {
+      return 'Supprimer l\'expérience';
+    }
+    return `Minimum ${this.getMinItems('experience')} expérience(s) requise(s)`;
   }
 
   addDescription(experienceId: string): void {

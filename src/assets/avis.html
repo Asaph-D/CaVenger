@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lettre d'Avis - Renouvellement d'une toiture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            line-height: 1.6;
+            font-size: 14pt;
+        }
+        .header {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .objet {
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 16pt;
+        }
+        .content {
+            margin-bottom: 20px;
+            font-size: 14pt;
+        }
+        ul {
+            margin-left: 20px;
+            padding-left: 20px;
+        }
+        ul li {
+            list-style-type: disc; /* Puces pleines comme dans Word */
+            margin-bottom: 5px;
+            font-size: 14pt;
+        }
+        .signature-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .signature {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .signature img {
+            max-width: 150px;
+            height: auto;
+        }
+        .technicien-info {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            font-size: 14pt;
+        }
+        .technicien-nom {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <p>16/02/2026</p>
+    </div>
+
+    <div class="objet">
+        <p>Objet : Renouvellement d’une toiture</p>
+    </div>
+
+    <div class="content">
+        <p><strong>1<sup>er</sup> point :</strong> Comme conseil.</p>
+        <p>Après étude du projet du renouvellement de l’ensemble du toit :</p>
+        <ul>
+            <li>La découverte est que le toit était fait en plusieurs compartiments. En réalité 4 compartiments.</li>
+        </ul>
+
+        <p><strong>2<sup>ème</sup> aspect :</strong></p>
+        <p>L’ensemble a été composé en tôle de 3m.</p>
+        <ul>
+            <li>Curieusement sur une charpente industriellement faite, donc jusqu’à aujourd’hui elle a encore sa valeur.</li>
+        </ul>
+
+        <p>D’où je conclus pour dire ceci : On peut plutôt changer juste les tôles ondulées en tôles bac.</p>
+
+    </div>
+
+    <div class="signature-section">
+        <div class="signature">
+            <img src="signed.png" alt="Signature">
+        </div>
+        <div class="technicien-info">
+            <div>
+                <p class="technicien-nom">Le technicien<br>Paul Talla</p>
+            </div>
+            <div>
+                <p>677195520<br>694646311</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

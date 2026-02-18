@@ -1,12 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface CVTemplate {
-  id: string;
-  name: string;
-  description: string;
-  layout: string;
-}
+import { Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import { CvApiService, CVTemplate } from '../../../../services/cv-api.service';
+import { SubscriptionService } from '../../../../services/subscription.service';
 
 @Component({
   selector: 'app-cv-template-selector',
@@ -47,12 +42,24 @@ interface CVTemplate {
 
         <div class="px-3 pb-2 grid grid-cols-3 gap-2">
           <button
-            *ngFor="let template of templates.slice(0, 6)"
+            *ngFor="let template of templates().slice(0, 6)"
             (click)="selectTemplate(template)"
             [class]="getTemplateCardClasses(template)"
+            class="relative"
           >
-            <div class="aspect-[5/5] rounded overflow-hidden dark:bg-slate-800 bg-gray-100 dark:border-slate-700 border-gray-200">
-              <div [innerHTML]="renderTemplate(template.layout)"></div>
+            <div class="aspect-[5/5] rounded overflow-hidden dark:bg-slate-800 bg-gray-100 dark:border-slate-700 border-gray-200 relative">
+              <img 
+                [src]="getTemplateImagePath(template.id)" 
+                [alt]="template.name"
+                class="w-full h-full object-cover"
+                (error)="onImageError($event, template)"
+              />
+              <div *ngIf="isTemplateFree(template.id)" class="absolute top-1 left-1 bg-green-500 text-white text-[8px] px-1 py-0.5 rounded font-semibold">
+                GRATUIT
+              </div>
+              <div *ngIf="!isTemplateFree(template.id) && !subscriptionService.isPremium()" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <i class="fas fa-lock text-white text-xs"></i>
+              </div>
             </div>
 
             <div class="text-left mt-1">
@@ -60,7 +67,7 @@ interface CVTemplate {
                 {{ template.name }}
               </h4>
             </div>
-            <div *ngIf="selectedTemplate?.id === template.id" class="absolute top-1 right-1 w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center">
+            <div *ngIf="selectedTemplate?.id === template.id" class="absolute top-1 right-1 w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center z-10">
               <svg class="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
               </svg>
@@ -75,12 +82,24 @@ interface CVTemplate {
 
         <div class="px-3 pb-3 grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
           <button
-            *ngFor="let template of templates.slice(6, 12)"
+            *ngFor="let template of templates().slice(6)"
             (click)="selectTemplate(template)"
             [class]="getTemplateCardClasses(template)"
+            class="relative"
           >
-            <div class="aspect-[5/5] rounded overflow-hidden dark:bg-slate-800 bg-gray-100 dark:border-slate-700 border-gray-200">
-              <div [innerHTML]="renderTemplate(template.layout)"></div>
+            <div class="aspect-[5/5] rounded overflow-hidden dark:bg-slate-800 bg-gray-100 dark:border-slate-700 border-gray-200 relative">
+              <img 
+                [src]="getTemplateImagePath(template.id)" 
+                [alt]="template.name"
+                class="w-full h-full object-cover"
+                (error)="onImageError($event, template)"
+              />
+              <div *ngIf="isTemplateFree(template.id)" class="absolute top-1 left-1 bg-green-500 text-white text-[8px] px-1 py-0.5 rounded font-semibold">
+                GRATUIT
+              </div>
+              <div *ngIf="!isTemplateFree(template.id) && !subscriptionService.isPremium()" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <i class="fas fa-lock text-white text-xs"></i>
+              </div>
             </div>
 
             <div class="text-left mt-1">
@@ -88,7 +107,7 @@ interface CVTemplate {
                 {{ template.name }}
               </h4>
             </div>
-            <div *ngIf="selectedTemplate?.id === template.id" class="absolute top-1 right-1 w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center">
+            <div *ngIf="selectedTemplate?.id === template.id" class="absolute top-1 right-1 w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center z-10">
               <svg class="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
               </svg>
@@ -143,35 +162,110 @@ interface CVTemplate {
     }
   `]
 })
-export class CvTemplateSelectorComponent {
+export class CvTemplateSelectorComponent implements OnInit {
   @Output() templateSelected = new EventEmitter<string>();
+
+  private cvApiService = inject(CvApiService);
+  protected subscriptionService = inject(SubscriptionService);
 
   isOpen = false;
   selectedTemplate: CVTemplate | null = null;
-  templates: CVTemplate[] = [
-    // Catégorie 1: Designs classiques
-    { id: 'cv-classic', name: 'Classique', description: 'Une colonne', layout: 'single-column' },
-    { id: 'cv-modern', name: 'Moderne', description: 'Sidebar', layout: 'sidebar' },
-    { id: 'cv-two-col', name: 'Deux Colonnes', description: 'Équilibré', layout: 'two-column' },
-    { id: 'cv-timeline', name: 'Timeline', description: 'Chrono', layout: 'timeline' },
-    // Catégorie 2: Designs épurés
-    { id: 'cv-arch', name: 'Arche', description: 'Arc', layout: 'arch' },
-    { id: 'cv-diagonal', name: 'Diagonal', description: 'Biais', layout: 'diagonal' },
-    { id: 'cv-circle', name: 'Cercle', description: 'Rond', layout: 'circle' },
-    { id: 'cv-geometric', name: 'Géométrique', description: 'Formes', layout: 'geometric' },
-    { id: 'cv-asymmetric', name: 'Asymétrique', description: 'Décalé', layout: 'asymmetric' }
-  ];
+  templates = signal<CVTemplate[]>([]);
+  isLoading = signal(false);
+
+  ngOnInit(): void {
+    this.loadTemplates();
+  }
+
+  /**
+   * Charge les templates depuis le backend
+   */
+  loadTemplates(): void {
+    this.isLoading.set(true);
+    this.cvApiService.getTemplates().subscribe({
+      next: (response) => {
+        if (response.success && response.data && response.data.length > 0) {
+          this.templates.set(response.data);
+          console.log('✅ Templates chargés depuis le backend:', response.data.length);
+        } else {
+          // Fallback: utiliser les templates statiques
+          console.warn('⚠️ Backend ne retourne pas de templates, utilisation des templates statiques');
+          this.templates.set(this.subscriptionService.getStaticTemplates());
+        }
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.warn('⚠️ Erreur lors du chargement des templates depuis le backend, utilisation des templates statiques:', error);
+        // Fallback: utiliser les templates statiques même en cas d'erreur
+        this.templates.set(this.subscriptionService.getStaticTemplates());
+        this.isLoading.set(false);
+      }
+    });
+  }
 
   toggleMenu(): void {
     this.isOpen = !this.isOpen;
   }
 
   selectTemplate(template: CVTemplate): void {
+    // Vérifier si le template est accessible
+    if (!this.isTemplateFree(template.id) && !this.subscriptionService.isPremium()) {
+      // Ne pas permettre la sélection des templates premium en version gratuite
+      return;
+    }
+    
     this.selectedTemplate = template;
     this.templateSelected.emit(template.id);
     setTimeout(() => {
       this.isOpen = false;
     }, 300);
+  }
+
+  getTemplateImagePath(templateId: string): string {
+    const normalizedId = templateId.toLowerCase();
+    return `assets/templates/${normalizedId}.png`;
+  }
+
+  isTemplateFree(templateId: string): boolean {
+    return this.subscriptionService.isTemplateFree(templateId);
+  }
+
+  onImageError(event: Event, template: CVTemplate): void {
+    const img = event.target as HTMLImageElement;
+    console.error('❌ Erreur de chargement d\'image:', img.src);
+    // Si l'image ne charge pas, afficher un placeholder
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    if (parent) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'w-full h-full flex items-center justify-center';
+      placeholder.innerHTML = `
+        <div class="text-center">
+          <i class="fas fa-file-alt text-gray-400 dark:text-gray-500 text-xs"></i>
+          <p class="text-[8px] text-gray-500 dark:text-gray-400 mt-1">${template.name}</p>
+        </div>
+      `;
+      parent.appendChild(placeholder);
+    }
+  }
+
+  /**
+   * Définit le template sélectionné sans déclencher l'événement (pour synchronisation externe)
+   */
+  setSelectedTemplate(template: { id: string; name: string; description: string; layout: string }): void {
+    // Trouver le template correspondant dans la liste
+    const foundTemplate = this.templates().find(t => t.id === template.id);
+    if (foundTemplate) {
+      this.selectedTemplate = foundTemplate;
+    } else {
+      // Si non trouvé, créer un objet temporaire
+      this.selectedTemplate = {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        layout: template.layout
+      } as CVTemplate;
+    }
   }
 
   getButtonClasses(): string {

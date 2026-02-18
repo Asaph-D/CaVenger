@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { CVSection } from '../../models/cv.interface';
 import { CVStateService } from '../../services/cv-state.service';
+import { ExternalTemplateService } from '../../services/external-template.service';
+import { SubscriptionService } from '../../services/subscription.service';
+import { ModalService } from '../../services/modal.service';
+import { AuthService } from '../../services/auth.service';
 import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component';
 
 @Component({
@@ -9,10 +14,39 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
   standalone: true,
   imports: [CommonModule, IconPickerComponent],
   template: `
-    <div #cvContainer 
+    <!-- Version Gratuite : Affichage simple de l'image du template -->
+    <div *ngIf="!subscriptionService.isPremium()" 
+         class="cv-preview-container bg-white shadow-2xl rounded-lg overflow-hidden print-optimize relative">
+      <div class="relative w-full" style="aspect-ratio: 210/297;">
+        <img 
+          [src]="getTemplateImagePath()" 
+          [alt]="currentCV()?.template?.name || 'CV Preview'"
+          class="w-full h-full object-contain"
+          (error)="onImageError($event)"
+        />
+        <!-- Overlay pour inciter à passer à Premium -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center p-8">
+          <div class="text-center text-white">
+            <h3 class="text-2xl font-bold mb-2">Débloquez l'édition complète</h3>
+            <p class="text-gray-200 mb-4">Passez à Premium pour personnaliser votre CV</p>
+            <button 
+              (click)="goToPayment()"
+              class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+              <i class="fas fa-crown mr-2"></i>
+              Passer à Premium
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Version Premium : Affichage interactif complet -->
+    <div *ngIf="subscriptionService.isPremium()"
+         #cvContainer 
          class="cv-preview-container bg-white shadow-2xl rounded-lg overflow-hidden print-optimize relative" 
          [style.font-family]="currentCV()?.theme?.fontFamily?.body"
          [style.font-size.px]="currentCV()?.layout?.fontSize?.body"
+         [style.background-image]="getWatermarkBackground()"
          (mouseenter)="showResizeHandles = true"
          (mouseleave)="showResizeHandles = false">
       
@@ -38,20 +72,26 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
         </div>
       </div>
 
-      <!-- Two Column Layout -->
-      <div class="flex flex-row min-h-[297mm] relative">
+      <!-- Dynamic Layout based on Template -->
+      <ng-container [ngSwitch]="getCurrentLayoutType()">
+        
+        <!-- Two Column Layout (Default) -->
+        <div *ngSwitchCase="'two-column'" class="flex flex-row min-h-[297mm] relative">
         
         <!-- Left Column -->
         <div class="left-column transition-all duration-300"
              [style.width.%]="currentCV()?.layout?.leftColumnWidth"
-             [style.background]="getGradientBackground()"
-             [class.dragging]="isDragging">
+             [style.background]="getLeftColumnBackground()"
+             [style.border-right]="getLeftColumnBorder()"
+             [class.dragging]="isDragging"
+             [style.background-image]="getWatermarkBackground()">
           
           <!-- Profile Section -->
           <div class="profile-section p-8 text-white text-center"
                [ngClass]="{'dragging': isDragging && dragType === 'profile-picture'}"
                [style.justifyContent]="currentCV()?.layout?.profilePicturePosition === 'center-top' ? 'flex-start' : 'center'"
-               [style.alignItems]="currentCV()?.layout?.profilePicturePosition === 'center-top' ? 'center' : 'flex-start'">
+               [style.alignItems]="currentCV()?.layout?.profilePicturePosition === 'center-top' ? 'center' : 'flex-start'"
+               [style.background]="getGradientBackground()">
             <!-- Profile Picture -->
             <div class="profile-picture-container mb-6 relative group"
                  [ngClass]="getProfileDragClass('left')"
@@ -251,6 +291,9 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
 
         <!-- Right Column -->
         <div class="right-column flex-1 p-8 transition-all duration-300"
+             [style.background]="getRightColumnBackground()"
+             [style.border-left]="getRightColumnBorder()"
+             [style.background-image]="getWatermarkBackground()"
              [class.dragging]="isDragging">
           
           <div *ngFor="let section of getRightSections(); trackBy: trackBySection"
@@ -400,11 +443,668 @@ import { IconPickerComponent } from '../shared/icon-picker/icon-picker.component
         </div>
       </div>
 
+        <!-- Header Top Layout (Template Wilfried style) -->
+        <div *ngSwitchCase="'header-top'" class="min-h-[297mm] relative">
+          <!-- Header Section -->
+          <div class="header-section p-6 flex items-center"
+               [style.background]="getHeaderBackground()"
+               [style.background-image]="getWatermarkBackground()">
+            <div class="flex items-center w-full">
+              <!-- Profile Picture in Header -->
+              <div class="profile-picture-header mr-6">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative cursor-pointer"
+                     (click)="toggleProfilePictureType()">
+                  <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                       class="w-full h-full bg-white flex items-center justify-center text-4xl font-bold"
+                       [style.color]="currentCV()?.theme?.primaryColor">
+                    {{ getInitials() }}
+                  </div>
+                  <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                       [src]="currentCV()?.personalInfo?.profilePicture"
+                       alt="Profile Picture"
+                       class="w-full h-full object-cover">
+                  <div *ngIf="currentCV()?.personalInfo?.profileType === 'image' && !currentCV()?.personalInfo?.profilePicture"
+                       class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    <i class="fas fa-camera text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- Name and Title in Header -->
+              <div class="flex-1 text-white">
+                <h1 class="text-3xl font-bold mb-2" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                  <b>{{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}</b>
+                </h1>
+                <h2 class="text-lg opacity-90" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">
+                  <sub>{{ currentCV()?.personalInfo?.title }}</sub>
+                </h2>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Columns Below Header -->
+          <div class="flex flex-row">
+            <!-- Left Column -->
+            <div class="left-column transition-all duration-300"
+                 [style.width.%]="currentCV()?.layout?.leftColumnWidth"
+                 [style.background]="getLeftColumnBackground()"
+                 [style.background-image]="getWatermarkBackground()"
+                 [class.dragging]="isDragging">
+              <div class="px-6 py-8">
+                <!-- Left sections will be rendered here - using same structure as two-column -->
+                <div *ngFor="let section of getLeftSections(); trackBy: trackBySection" 
+                    class="section-container mb-8 relative group">
+                  <ng-container [ngSwitch]="section.type">
+                    <div *ngSwitchCase="'contact'">
+                      <h3 class="text-lg font-bold mb-4" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">CONTACT</h3>
+                      <div class="space-y-2 text-sm">
+                        <div *ngFor="let contact of getVisibleContactInfo()" class="flex items-start">
+                          <i [class]="contact.icon + ' mt-1 mr-3'"></i>
+                          <div>
+                            <p class="font-medium">{{ contact.label }}</p>
+                            <p class="text-gray-600 text-xs">{{ contact.value }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Add other left sections similarly -->
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column flex-1 p-8 transition-all duration-300"
+                 [style.background]="getRightColumnBackground()"
+                 [style.background-image]="getWatermarkBackground()"
+                 [class.dragging]="isDragging">
+              <!-- Right sections - same as two-column layout -->
+              <div *ngFor="let section of getRightSections(); trackBy: trackBySection"
+                  class="section-container mb-8 relative group">
+                <ng-container [ngSwitch]="section.type">
+                  <div *ngSwitchCase="'profile'">
+                    <h2 class="text-2xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                    <p class="text-gray-700">{{ currentCV()?.personalInfo?.summary }}</p>
+                  </div>
+                  <div *ngSwitchCase="'experience'">
+                    <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                    <div class="space-y-6">
+                      <div *ngFor="let exp of getVisibleExperience()" class="border-l-2 pl-4" [style.border-color]="currentCV()?.theme?.primaryColor">
+                        <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                        <p class="text-gray-600 text-sm">{{ exp.company }} - {{ exp.location }}</p>
+                        <p class="text-gray-500 text-xs mb-2">{{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                        <ul class="list-disc pl-5 text-sm text-gray-700">
+                          <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'education'">
+                    <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                    <div class="space-y-4">
+                      <div *ngFor="let edu of getVisibleEducation()" class="border-l-2 pl-4" [style.border-color]="currentCV()?.theme?.primaryColor">
+                        <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                        <p class="text-gray-600 text-sm">{{ edu.institution }} - {{ edu.location }}</p>
+                        <p class="text-gray-500 text-xs">{{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single Column Layout -->
+        <div *ngSwitchCase="'single-column'" class="min-h-[297mm] relative p-8"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Profile Section at Top -->
+          <div class="profile-section-header text-center mb-8 pb-8 border-b-2"
+               [style.border-color]="currentCV()?.theme?.primaryColor">
+            <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 shadow-lg relative cursor-pointer"
+                 [style.border-color]="currentCV()?.theme?.primaryColor"
+                 (click)="toggleProfilePictureType()">
+              <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                   class="w-full h-full bg-white flex items-center justify-center text-4xl font-bold"
+                   [style.color]="currentCV()?.theme?.primaryColor">
+                {{ getInitials() }}
+              </div>
+              <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                   [src]="currentCV()?.personalInfo?.profilePicture"
+                   alt="Profile Picture"
+                   class="w-full h-full object-cover">
+            </div>
+            <h1 class="text-3xl font-bold mb-2" [style.font-family]="currentCV()?.theme?.fontFamily?.heading" [style.color]="currentCV()?.theme?.primaryColor">
+              {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+            </h1>
+            <h2 class="text-lg opacity-90 mb-4" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading" [style.color]="currentCV()?.theme?.secondaryColor">
+              {{ currentCV()?.personalInfo?.title }}
+            </h2>
+          </div>
+          <!-- All Sections in Single Column -->
+          <div class="space-y-8">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection" class="section-container mb-8">
+              <ng-container [ngSwitch]="section.type">
+                <div *ngSwitchCase="'profile'">
+                  <h2 class="text-2xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                  <p class="text-gray-700">{{ currentCV()?.personalInfo?.summary }}</p>
+                </div>
+                <div *ngSwitchCase="'experience'">
+                  <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                  <div *ngFor="let exp of getVisibleExperience()" class="mb-6">
+                    <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                    <p class="text-gray-600 text-sm">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 mt-2">
+                      <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'education'">
+                  <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                  <div *ngFor="let edu of getVisibleEducation()" class="mb-4">
+                    <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                    <p class="text-gray-600 text-sm">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'contact'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">CONTACT</h3>
+                  <div *ngFor="let contact of getVisibleContactInfo()" class="mb-2">
+                    <p class="font-medium">{{ contact.label }}</p>
+                    <p class="text-gray-600 text-sm">{{ contact.value }}</p>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'skills'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">COMPÉTENCES</h3>
+                  <div *ngFor="let skill of getVisibleSkills()" class="mb-3">
+                    <p class="font-medium mb-1">{{ skill.name }}</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="h-2 rounded-full" [style.width.%]="skill.level" [style.background]="currentCV()?.theme?.primaryColor"></div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'languages'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">LANGUES</h3>
+                  <div *ngFor="let language of getVisibleLanguages()" class="mb-3">
+                    <p class="font-medium mb-1">{{ language.name }}</p>
+                    <p class="text-gray-600 text-sm">{{ language.levelDescription }}</p>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'interests'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">LOISIRS</h3>
+                  <div class="flex flex-wrap gap-2">
+                    <span *ngFor="let interest of getVisibleInterests()" 
+                          class="px-3 py-1 rounded-full text-sm"
+                          [style.background]="currentCV()?.theme?.accentColor + '20'"
+                          [style.color]="currentCV()?.theme?.primaryColor">
+                      {{ interest.name }}
+                    </span>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Layout -->
+        <div *ngSwitchCase="'sidebar'" class="flex flex-row min-h-[297mm] relative">
+          <!-- Left Sidebar -->
+          <div class="left-column transition-all duration-300 w-1/3"
+               [style.background]="getLeftColumnBackground()"
+               [style.background-image]="getWatermarkBackground()"
+               [class.dragging]="isDragging">
+            <!-- Profile in Sidebar -->
+            <div class="profile-section p-8 text-white text-center"
+                 [style.background]="getGradientBackground()">
+              <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg relative cursor-pointer"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="w-full h-full bg-white flex items-center justify-center text-4xl font-bold"
+                     [style.color]="currentCV()?.theme?.primaryColor">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile Picture"
+                     class="w-full h-full object-cover">
+              </div>
+              <h1 class="text-xl font-bold mb-2" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+              </h1>
+              <h2 class="text-sm opacity-90 mb-4" [style.font-size.px]="currentCV()?.layout?.fontSize?.heading">
+                {{ currentCV()?.personalInfo?.title }}
+              </h2>
+            </div>
+            <!-- Left Sections in Sidebar -->
+            <div class="px-6 pb-8">
+              <div *ngFor="let section of getLeftSections(); trackBy: trackBySection" class="section-container mb-8">
+                <ng-container [ngSwitch]="section.type">
+                  <div *ngSwitchCase="'contact'">
+                    <h3 class="text-lg font-bold mb-4 text-white">CONTACT</h3>
+                    <div *ngFor="let contact of getVisibleContactInfo()" class="mb-3 text-white">
+                      <i [class]="contact.icon + ' mr-2'"></i>
+                      <span class="text-sm">{{ contact.value }}</span>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'skills'">
+                    <h3 class="text-lg font-bold mb-4 text-white">COMPÉTENCES</h3>
+                    <div *ngFor="let skill of getVisibleSkills()" class="mb-3">
+                      <p class="text-white text-sm mb-1">{{ skill.name }}</p>
+                      <div class="w-full bg-white bg-opacity-30 rounded-full h-2">
+                        <div class="h-2 bg-white rounded-full" [style.width.%]="skill.level"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'languages'">
+                    <h3 class="text-lg font-bold mb-4 text-white">LANGUES</h3>
+                    <div *ngFor="let language of getVisibleLanguages()" class="mb-3 text-white">
+                      <p class="text-sm">{{ language.name }} - {{ language.levelDescription }}</p>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'interests'">
+                    <h3 class="text-lg font-bold mb-4 text-white">LOISIRS</h3>
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngFor="let interest of getVisibleInterests()" 
+                            class="bg-white bg-opacity-20 px-2 py-1 rounded-full text-xs text-white">
+                        {{ interest.name }}
+                      </span>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <!-- Right Main Content -->
+          <div class="right-column flex-1 p-8 transition-all duration-300"
+               [style.background]="getRightColumnBackground()"
+               [style.background-image]="getWatermarkBackground()"
+               [class.dragging]="isDragging">
+            <div *ngFor="let section of getRightSections(); trackBy: trackBySection" class="section-container mb-8">
+              <ng-container [ngSwitch]="section.type">
+                <div *ngSwitchCase="'profile'">
+                  <h2 class="text-2xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                  <p class="text-gray-700">{{ currentCV()?.personalInfo?.summary }}</p>
+                </div>
+                <div *ngSwitchCase="'experience'">
+                  <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                  <div *ngFor="let exp of getVisibleExperience()" class="mb-6">
+                    <h4 class="font-bold text-lg" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                    <p class="text-gray-600 text-sm">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 mt-2">
+                      <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'education'">
+                  <h3 class="text-2xl font-bold mb-6" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                  <div *ngFor="let edu of getVisibleEducation()" class="mb-4">
+                    <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                    <p class="text-gray-600 text-sm">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Layout -->
+        <div *ngSwitchCase="'timeline'" class="min-h-[297mm] relative p-8"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Header -->
+          <div class="flex items-center gap-4 pb-6 mb-6 border-b-2" [style.border-color]="currentCV()?.theme?.primaryColor">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center border-4 shadow-lg"
+                 [style.border-color]="currentCV()?.theme?.primaryColor"
+                 [style.background]="getGradientBackground()"
+                 (click)="toggleProfilePictureType()">
+              <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                   class="text-white text-2xl font-bold">
+                {{ getInitials() }}
+              </div>
+              <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                   [src]="currentCV()?.personalInfo?.profilePicture"
+                   alt="Profile"
+                   class="w-full h-full rounded-full object-cover">
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold" [style.font-family]="currentCV()?.theme?.fontFamily?.heading" [style.color]="currentCV()?.theme?.primaryColor">
+                {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+              </h1>
+              <h2 class="text-lg" [style.color]="currentCV()?.theme?.secondaryColor">{{ currentCV()?.personalInfo?.title }}</h2>
+            </div>
+          </div>
+          <!-- Timeline Content -->
+          <div class="relative pl-8 space-y-8">
+            <div class="absolute left-0 top-0 bottom-0 w-1" [style.background]="currentCV()?.theme?.primaryColor + '40'"></div>
+            <!-- Experience Timeline -->
+            <div *ngFor="let exp of getVisibleExperience()" class="relative">
+              <div class="absolute -left-10 top-0 w-4 h-4 rounded-full border-2 border-white shadow-md"
+                   [style.background]="currentCV()?.theme?.primaryColor"
+                   [style.border-color]="currentCV()?.theme?.primaryColor"></div>
+              <div class="bg-white p-4 rounded-lg shadow-sm border-l-4" [style.border-color]="currentCV()?.theme?.primaryColor">
+                <h4 class="font-bold text-lg mb-1" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                <p class="text-gray-600 text-sm mb-2">{{ exp.company }} - {{ exp.location }}</p>
+                <p class="text-gray-500 text-xs mb-2">{{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700">
+                  <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                </ul>
+              </div>
+            </div>
+            <!-- Education Timeline -->
+            <div *ngFor="let edu of getVisibleEducation()" class="relative">
+              <div class="absolute -left-10 top-0 w-4 h-4 rounded-full border-2 border-white shadow-md"
+                   [style.background]="currentCV()?.theme?.accentColor"
+                   [style.border-color]="currentCV()?.theme?.accentColor"></div>
+              <div class="bg-white p-4 rounded-lg shadow-sm border-l-4" [style.border-color]="currentCV()?.theme?.accentColor">
+                <h4 class="font-bold text-lg mb-1" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                <p class="text-gray-600 text-sm mb-2">{{ edu.institution }} - {{ edu.location }}</p>
+                <p class="text-gray-500 text-xs">{{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arch Layout -->
+        <div *ngSwitchCase="'arch'" class="min-h-[297mm] relative overflow-hidden"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Arch Header -->
+          <div class="relative h-32 mb-8" [style.background]="getGradientBackground()" style="border-radius: 0 0 50% 50%;">
+            <div class="absolute top-4 left-1/2 transform -translate-x-1/2">
+              <div class="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center cursor-pointer"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="text-3xl font-bold" [style.color]="currentCV()?.theme?.primaryColor">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile"
+                     class="w-full h-full rounded-full object-cover">
+              </div>
+            </div>
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center text-white w-full">
+              <h1 class="text-2xl font-bold" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+              </h1>
+              <h2 class="text-sm opacity-90">{{ currentCV()?.personalInfo?.title }}</h2>
+            </div>
+          </div>
+          <!-- Content with Arch Style -->
+          <div class="px-8 pb-8 space-y-6">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection" class="section-container mb-6 pl-4 border-l-4" [style.border-color]="currentCV()?.theme?.primaryColor">
+              <ng-container [ngSwitch]="section.type">
+                <div *ngSwitchCase="'profile'">
+                  <h2 class="text-xl font-bold mb-3" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                  <p class="text-gray-700 text-sm">{{ currentCV()?.personalInfo?.summary }}</p>
+                </div>
+                <div *ngSwitchCase="'experience'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                  <div *ngFor="let exp of getVisibleExperience()" class="mb-4">
+                    <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                    <p class="text-gray-600 text-xs">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                    <ul class="list-disc pl-5 text-xs text-gray-700 mt-1">
+                      <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'education'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                  <div *ngFor="let edu of getVisibleEducation()" class="mb-3">
+                    <h4 class="font-bold text-sm" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                    <p class="text-gray-600 text-xs">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagonal Layout -->
+        <div *ngSwitchCase="'diagonal'" class="min-h-[297mm] relative overflow-hidden"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Diagonal Header -->
+          <div class="relative h-40 mb-8" [style.background]="getGradientBackground()" style="clip-path: polygon(0 0, 100% 0, 100% 60%, 0 100%);">
+            <div class="absolute top-4 left-4 flex items-center gap-4 text-white">
+              <div class="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center cursor-pointer"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="text-2xl font-bold" [style.color]="currentCV()?.theme?.primaryColor">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile"
+                     class="w-full h-full rounded-full object-cover">
+              </div>
+              <div>
+                <h1 class="text-2xl font-bold" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                  {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+                </h1>
+                <h2 class="text-sm opacity-90">{{ currentCV()?.personalInfo?.title }}</h2>
+              </div>
+            </div>
+          </div>
+          <!-- Content with Diagonal Accents -->
+          <div class="px-8 pb-8 space-y-6">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection" class="section-container mb-6">
+              <div class="relative h-1 mb-4" [style.background]="currentCV()?.theme?.primaryColor + '30'" style="clip-path: polygon(0 60%, 100% 40%, 100% 60%, 0 80%);"></div>
+              <ng-container [ngSwitch]="section.type">
+                <div *ngSwitchCase="'profile'">
+                  <h2 class="text-xl font-bold mb-3" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                  <p class="text-gray-700 text-sm">{{ currentCV()?.personalInfo?.summary }}</p>
+                </div>
+                <div *ngSwitchCase="'experience'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                  <div *ngFor="let exp of getVisibleExperience()" class="mb-4">
+                    <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                    <p class="text-gray-600 text-xs">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                    <ul class="list-disc pl-5 text-xs text-gray-700 mt-1">
+                      <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'education'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                  <div *ngFor="let edu of getVisibleEducation()" class="mb-3">
+                    <h4 class="font-bold text-sm" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                    <p class="text-gray-600 text-xs">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Circle Layout -->
+        <div *ngSwitchCase="'circle'" class="min-h-[297mm] relative p-8"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Header with Circle -->
+          <div class="flex items-center justify-between pb-6 mb-6 border-b-2" [style.border-color]="currentCV()?.theme?.primaryColor">
+            <h1 class="text-3xl font-bold" [style.font-family]="currentCV()?.theme?.fontFamily?.heading" [style.color]="currentCV()?.theme?.primaryColor">
+              {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+            </h1>
+            <div class="relative">
+              <div class="w-24 h-24 rounded-full border-4 shadow-lg flex items-center justify-center cursor-pointer"
+                   [style.border-color]="currentCV()?.theme?.primaryColor"
+                   [style.background]="getGradientBackground()"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="w-20 h-20 rounded-full bg-white flex items-center justify-center text-2xl font-bold"
+                     [style.color]="currentCV()?.theme?.primaryColor">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile"
+                     class="w-20 h-20 rounded-full object-cover">
+              </div>
+            </div>
+          </div>
+          <!-- Content with Circle Points -->
+          <div class="space-y-6">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection" class="flex gap-4 items-start">
+              <div class="w-3 h-3 rounded-full mt-2 flex-shrink-0" [style.background]="currentCV()?.theme?.primaryColor"></div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                  {{ section.title || section.type.toUpperCase() }}
+                </h3>
+                <ng-container [ngSwitch]="section.type">
+                  <div *ngSwitchCase="'profile'">
+                    <p class="text-gray-700">{{ currentCV()?.personalInfo?.summary }}</p>
+                  </div>
+                  <div *ngSwitchCase="'experience'">
+                    <div *ngFor="let exp of getVisibleExperience()" class="mb-4">
+                      <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                      <p class="text-gray-600 text-sm">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                      <ul class="list-disc pl-5 text-sm text-gray-700 mt-2">
+                        <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'education'">
+                    <div *ngFor="let edu of getVisibleEducation()" class="mb-4">
+                      <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                      <p class="text-gray-600 text-sm">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geometric Layout -->
+        <div *ngSwitchCase="'geometric'" class="min-h-[297mm] relative overflow-hidden"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Geometric Header -->
+          <div class="relative p-8 mb-8" [style.background]="getGradientBackground()">
+            <div class="absolute top-0 right-0 w-32 h-32 opacity-20" [style.background]="currentCV()?.theme?.accentColor" style="transform: rotate(45deg);"></div>
+            <div class="relative z-10 flex items-center gap-4 text-white">
+              <div class="w-20 h-20 flex items-center justify-center border-4 border-white shadow-lg"
+                   [style.background]="currentCV()?.theme?.accentColor"
+                   style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="text-xl font-bold">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile"
+                     class="w-full h-full object-cover"
+                     style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);">
+              </div>
+              <div>
+                <h1 class="text-2xl font-bold" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                  {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+                </h1>
+                <h2 class="text-sm opacity-90">{{ currentCV()?.personalInfo?.title }}</h2>
+              </div>
+            </div>
+          </div>
+          <!-- Content -->
+          <div class="px-8 pb-8 space-y-6">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection" class="section-container mb-6 flex gap-3 items-start">
+              <div class="w-2 h-2 mt-2 flex-shrink-0" [style.background]="currentCV()?.theme?.primaryColor" style="transform: rotate(45deg);"></div>
+              <div class="flex-1">
+                <ng-container [ngSwitch]="section.type">
+                  <div *ngSwitchCase="'profile'">
+                    <h2 class="text-xl font-bold mb-3" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                    <p class="text-gray-700 text-sm">{{ currentCV()?.personalInfo?.summary }}</p>
+                  </div>
+                  <div *ngSwitchCase="'experience'">
+                    <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                    <div *ngFor="let exp of getVisibleExperience()" class="mb-4">
+                      <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                      <p class="text-gray-600 text-xs">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                      <ul class="list-disc pl-5 text-xs text-gray-700 mt-1">
+                        <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div *ngSwitchCase="'education'">
+                    <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                    <div *ngFor="let edu of getVisibleEducation()" class="mb-3">
+                      <h4 class="font-bold text-sm" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                      <p class="text-gray-600 text-xs">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Asymmetric Layout -->
+        <div *ngSwitchCase="'asymmetric'" class="min-h-[297mm] relative overflow-hidden"
+             [style.background]="getRightColumnBackground()"
+             [style.background-image]="getWatermarkBackground()">
+          <!-- Asymmetric Header -->
+          <div class="flex h-32 mb-8">
+            <div class="w-2/3 p-6 flex items-center" [style.background]="getGradientBackground()">
+              <h1 class="text-2xl font-bold text-white" [style.font-family]="currentCV()?.theme?.fontFamily?.heading">
+                {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
+              </h1>
+            </div>
+            <div class="w-1/3 flex items-center justify-center" [style.background]="currentCV()?.theme?.accentColor + '20'">
+              <div class="w-20 h-20 rounded-full border-4 shadow-lg bg-white flex items-center justify-center cursor-pointer"
+                   [style.border-color]="currentCV()?.theme?.primaryColor"
+                   (click)="toggleProfilePictureType()">
+                <div *ngIf="currentCV()?.personalInfo?.profileType === 'initials'" 
+                     class="text-xl font-bold" [style.color]="currentCV()?.theme?.primaryColor">
+                  {{ getInitials() }}
+                </div>
+                <img *ngIf="currentCV()?.personalInfo?.profileType === 'image' && currentCV()?.personalInfo?.profilePicture" 
+                     [src]="currentCV()?.personalInfo?.profilePicture"
+                     alt="Profile"
+                     class="w-full h-full rounded-full object-cover">
+              </div>
+            </div>
+          </div>
+          <!-- Content with Asymmetric Indentation -->
+          <div class="px-8 pb-8 space-y-6">
+            <div *ngFor="let section of getAllSections(); trackBy: trackBySection; let i = index" 
+                 class="section-container mb-6 pl-4 border-l-4"
+                 [style.border-color]="currentCV()?.theme?.primaryColor"
+                 [style.margin-left.px]="i % 3 === 0 ? 0 : (i % 3 === 1 ? 12 : 6)">
+              <ng-container [ngSwitch]="section.type">
+                <div *ngSwitchCase="'profile'">
+                  <h2 class="text-xl font-bold mb-3" [style.color]="currentCV()?.theme?.primaryColor">PROFIL</h2>
+                  <p class="text-gray-700 text-sm">{{ currentCV()?.personalInfo?.summary }}</p>
+                </div>
+                <div *ngSwitchCase="'experience'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">EXPÉRIENCE</h3>
+                  <div *ngFor="let exp of getVisibleExperience()" class="mb-4">
+                    <h4 class="font-bold" [style.color]="currentCV()?.theme?.primaryColor">{{ exp.title }}</h4>
+                    <p class="text-gray-600 text-xs">{{ exp.company }} - {{ formatDateRange(exp.startDate, exp.endDate, exp.current) }}</p>
+                    <ul class="list-disc pl-5 text-xs text-gray-700 mt-1">
+                      <li *ngFor="let desc of exp.description">{{ desc }}</li>
+                    </ul>
+                  </div>
+                </div>
+                <div *ngSwitchCase="'education'">
+                  <h3 class="text-xl font-bold mb-4" [style.color]="currentCV()?.theme?.primaryColor">FORMATION</h3>
+                  <div *ngFor="let edu of getVisibleEducation()" class="mb-3">
+                    <h4 class="font-bold text-sm" [style.color]="currentCV()?.theme?.primaryColor">{{ edu.degree }}</h4>
+                    <p class="text-gray-600 text-xs">{{ edu.institution }} - {{ formatDateRange(edu.startDate, edu.endDate, edu.current) }}</p>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+
       <!-- Drag overlay -->
       <div *ngIf="isDragging" class="drag-overlay absolute inset-0 bg-blue-500 bg-opacity-20 pointer-events-none">
         <div class="absolute inset-0 border-2 border-dashed border-blue-500"></div>
       </div>
     </div>
+    <!-- Fin Version Premium -->
 
     <!-- Icon Picker Modal -->
     <app-icon-picker 
@@ -889,6 +1589,11 @@ export class CVPreviewComponent implements AfterViewInit {
   @ViewChild('cvContainer') cvContainer!: ElementRef;
 
   public readonly cvService = inject(CVStateService);
+  private readonly externalTemplateService = inject(ExternalTemplateService);
+  protected readonly subscriptionService = inject(SubscriptionService);
+  private readonly router = inject(Router);
+  private readonly modalService = inject(ModalService);
+  private readonly authService = inject(AuthService);
   
   currentCV = this.cvService.currentCV;
   showHelp = this.cvService.showHelp;
@@ -1192,7 +1897,97 @@ export class CVPreviewComponent implements AfterViewInit {
     const cv = this.currentCV();
     if (!cv) return 'linear-gradient(135deg, #ec4899, #db2777)';
     
+    // Si un template externe est sélectionné, utiliser ses couleurs
+    if (cv.externalTemplate) {
+      const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+      if (template?.visualConfig) {
+        return `linear-gradient(135deg, ${template.visualConfig.headerColors.primary}, ${template.visualConfig.headerColors.secondary})`;
+      }
+    }
+    
     return `linear-gradient(135deg, ${cv.theme.primaryColor}, ${cv.theme.secondaryColor})`;
+  }
+
+  getLeftColumnBackground(): string {
+    const cv = this.currentCV();
+    if (!cv) return 'linear-gradient(135deg, #ec4899, #db2777)';
+    
+    // Si un template externe est sélectionné, utiliser sa configuration
+    if (cv.externalTemplate) {
+      const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+      if (template?.visualConfig?.columnStyles?.left?.background) {
+        return template.visualConfig.columnStyles.left.background;
+      }
+    }
+    
+    // Sinon, utiliser le gradient par défaut
+    return this.getGradientBackground();
+  }
+
+  getRightColumnBackground(): string {
+    const cv = this.currentCV();
+    if (!cv) return 'white';
+    
+    // Si un template externe est sélectionné, utiliser sa configuration
+    if (cv.externalTemplate) {
+      const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+      if (template?.visualConfig?.columnStyles?.right?.background) {
+        return template.visualConfig.columnStyles.right.background;
+      }
+    }
+    
+    return 'white';
+  }
+
+  getLeftColumnBorder(): string {
+    const cv = this.currentCV();
+    if (!cv) return 'none';
+    
+    if (cv.externalTemplate) {
+      const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+      if (template?.visualConfig?.columnStyles?.left?.border) {
+        return template.visualConfig.columnStyles.left.border;
+      }
+    }
+    
+    return 'none';
+  }
+
+  getRightColumnBorder(): string {
+    const cv = this.currentCV();
+    if (!cv) return 'none';
+    
+    if (cv.externalTemplate) {
+      const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+      if (template?.visualConfig?.columnStyles?.right?.border) {
+        return template.visualConfig.columnStyles.right.border;
+      }
+    }
+    
+    return 'none';
+  }
+
+  getWatermarkBackground(): string {
+    const cv = this.currentCV();
+    if (!cv?.watermarkStyle) return 'none';
+    
+    if (cv.watermarkStyle.backgroundStyle === 'none') {
+      return 'none';
+    }
+    
+    return cv.watermarkStyle.backgroundStyle;
+  }
+
+  getCurrentLayoutType(): string {
+    const cv = this.currentCV();
+    if (!cv?.externalTemplate) return 'two-column';
+    
+    const template = this.externalTemplateService.getExternalTemplate(cv.externalTemplate.id);
+    return template?.visualConfig?.layoutType || 'two-column';
+  }
+
+  getHeaderBackground(): string {
+    return this.getGradientBackground();
   }
 
   getLeftSections(): CVSection[] {
@@ -1201,6 +1996,10 @@ export class CVPreviewComponent implements AfterViewInit {
 
   getRightSections(): CVSection[] {
     return this.currentCV()?.sections.filter(s => s.position === 'right' && s.visible).sort((a, b) => a.order - b.order) || [];
+  }
+
+  getAllSections(): CVSection[] {
+    return this.currentCV()?.sections.filter(s => s.visible).sort((a, b) => a.order - b.order) || [];
   }
 
   getVisibleContactInfo() {
@@ -1529,7 +2328,10 @@ export class CVPreviewComponent implements AfterViewInit {
   addNewSection(type: string, position: 'left' | 'right' = 'right'): void {
     // Vérifie si une section du même type existe déjà
     if (!this.canAddSection(type)) {
-      alert(`Une section de type "${type}" existe déjà.`);
+      this.modalService.showWarning(
+        `Une section de type "${type}" existe déjà.`,
+        'Section existante'
+      );
       return;
     }
 
@@ -1679,5 +2481,52 @@ export class CVPreviewComponent implements AfterViewInit {
     } else {
       this.currentHelpTip = null;
     }
+  }
+
+  /**
+   * Récupère le chemin de l'image du template actuel (version gratuite)
+   */
+  getTemplateImagePath(): string {
+    const templateId = this.currentCV()?.template?.id || 'cv1';
+    const normalizedId = templateId.toLowerCase();
+    return `assets/templates/${normalizedId}.png`;
+  }
+
+  /**
+   * Gère les erreurs de chargement d'image
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    console.error('❌ Erreur de chargement d\'image du template:', img.src);
+    // Afficher un placeholder si l'image ne charge pas
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    if (parent) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800';
+      placeholder.innerHTML = `
+        <div class="text-center p-8">
+          <i class="fas fa-file-alt text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+          <p class="text-gray-600 dark:text-gray-400">Template non disponible</p>
+          <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">${this.currentCV()?.template?.name || 'Template'}</p>
+        </div>
+      `;
+      parent.appendChild(placeholder);
+    }
+  }
+
+  /**
+   * Redirige vers la page de paiement
+   */
+  goToPayment(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.modalService.showWarning(
+        'Vous devez être connecté pour accéder au paiement premium.',
+        'Connexion requise'
+      );
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/payment' } });
+      return;
+    }
+    this.router.navigate(['/payment']);
   }
 }

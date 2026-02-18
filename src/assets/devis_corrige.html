@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devis Estimatif</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .info {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+        }
+        td {
+            text-align: left;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+        .main-oeuvre-container {
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+            gap: 10px;
+        }
+        .main-oeuvre-points {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            text-align: left;
+            margin-left: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            width: 100%;
+        }
+        .fait-et-signature {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+        }
+        .fait {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .signature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .signature img {
+            max-width: 300px;
+            margin-left: 200px;
+            height: auto;
+        }
+        .technicien-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        .technicien-info {
+            text-align: left;
+        }
+        .technicien-contacts {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>DEVIS ESTIMATIF POUR LA RÉALISATION</h1>
+
+    <div class="info">
+        Après avoir adopté le conseil proposé, voici le devis estimatif pour la réalisation <br>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Quantité</th>
+                <th>P.U</th>
+                <th>P.t</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tôle Bac Alluminium en 0,50</td>
+                <td>790 ml</td>
+                <td>4 500 frs</td>
+                <td>3 555 000 frs</td>
+            </tr>
+            <tr>
+                <td>Rive de faîtage 0,50 de 4 m en 0,50</td>
+                <td>25 pièces</td>
+                <td>11 000 frs</td>
+                <td>275 000 frs</td>
+            </tr>
+            <tr>
+                <td>Planche de rive</td>
+                <td>05</td>
+                <td>8 000 frs</td>
+                <td>40 000 frs</td>
+            </tr>
+            <tr>
+                <td>Bande de rive de 4 m en 0,30 Alluzing</td>
+                <td>08 pièces</td>
+                <td>8 000 frs</td>
+                <td>64 000 frs</td>
+            </tr>
+            <tr>
+                <td>Gouttière de 4 m en 0,50</td>
+                <td>20 pièces</td>
+                <td>11 000 frs</td>
+                <td>220 000 frs</td>
+            </tr>
+            <tr>
+                <td>Fixation</td>
+                <td>1 700 pièces</td>
+                <td>80 frs</td>
+                <td>136 000 frs</td>
+            </tr>
+            <tr>
+                <td>Réserve éventuelles pour le bois touché</td>
+                <td></td>
+                <td></td>
+                <td>200 000 frs</td>
+            </tr>
+            <tr>
+                <td>Transactions ou divers</td>
+                <td></td>
+                <td></td>
+                <td>140 000 frs</td>
+            </tr>
+            <tr>
+                <td colspan="3"><strong>Prix Total Matériaux</strong></td>
+                <td><strong>4 630 000 frs</strong></td>
+            </tr>
+            <tr class="main-oeuvre">
+                <td colspan="3">
+                    <div class="main-oeuvre-container">
+                        <div><strong>Main d'œuvre</strong></div>
+                        <div class="main-oeuvre-points">
+                            <span>1<sup>er</sup> point : destruction minutieuse</span>
+                            <span>2<sup>e</sup> point : réalisation nouvelle</span>
+                        </div>
+                        <div class="main-oeuvre-points">
+                            <span><strong>240 000 frs</strong></span>
+                            <span><strong>1 100 000 frs</strong></span>
+                        </div>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
+
+            <tr class="total-row">
+                <td colspan="3"><strong>PRIX TOTAL</strong></td>
+                <td><strong>5 970 000 frs</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="fait-et-signature">
+            <div class="signature">
+                <img src="signed.png" alt="Signature">
+            </div>
+            <div class="fait">
+                <p>
+                    Fait à Bafoussam, le
+                    <span style="border-bottom: 1px solid #000; padding-bottom: 2px; min-width: 80px; text-align: center; display: inline-block;">
+                        16/02/2026
+                    </span>
+                </p>
+            </div>
+        </div>
+        <div class="technicien-container">
+            <div class="technicien-info">
+                <p><strong>Le technicien</strong><br> Paul Talla</p>
+            </div>
+            <div class="technicien-contacts">
+                <p>677 195 520 <br> 694 646 311</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
