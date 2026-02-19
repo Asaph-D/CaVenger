@@ -79,3 +79,6 @@ Une fois configuré, testez l'envoi d'email en générant un CV depuis le fronte
 
 
 
+
+
+
