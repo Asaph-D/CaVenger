@@ -104,8 +104,8 @@ class TemplateService {
       { patterns: ['Nom Prénom', 'NOM PRÉNOM', 'Nom et Prénom', 'nom prénom'], value: data.fullName },
       { patterns: ['Prénom Nom', 'PRÉNOM NOM'], value: data.fullName },
 
-      // Titre professionnel (variantes)
-      { patterns: ['Titre Professionnel', 'TITRE PROFESSIONNEL', 'Titre professionnel', 'MÉTIER', 'Métier'], value: data.title },
+      // Titre professionnel (variantes) - IMPORTANT: plus long en premier!
+      { patterns: ['MÉTIER / POSTE CIBLÉ', 'Titre Professionnel', 'TITRE PROFESSIONNEL', 'Titre professionnel', 'MÉTIER', 'Métier'], value: data.title },
 
       // Description/Profil (variantes)
       { patterns: ['Description professionnelle générale.', 'Description professionnelle générale', 'Description professionnelle'], value: data.summary },
@@ -114,8 +114,8 @@ class TemplateService {
       // Email (variantes)
       { patterns: ['email@domain.com', 'Email : email@domain.com', 'email@domain.com'], value: data.email },
 
-      // Téléphone (variantes)
-      { patterns: ['+00 000 000 000', '00 00 00 00', 'Téléphone : 00 00 00 00'], value: data.phone },
+      // Téléphone (variantes) - note: '06' seul est évité pour ne pas matcher '060000...'
+      { patterns: ['06 00 00 00 00', '+00 000 000 000', 'Téléphone : 00 00 00 00', '00 00 00 00'], value: data.phone },
 
       // Adresse (variantes)
       { patterns: ['Ville, Pays', 'Adresse postale', 'Ville Pays'], value: data.address },
@@ -138,30 +138,13 @@ class TemplateService {
       }
     });
 
-    // Remplacer les sections de profil/description (plusieurs formats possibles)
+    // Remplacer les descriptions avec whitespace flexible (newlines, indentation)
     if (data.summary) {
-      // Format 1: <p>Description...</p> (générique)
+      // Cherche le pattern "Professionnel...enjeux." entre des tags <p>
+      // Accepte les newlines et espaces d'indentation
       result = result.replace(
-        /(<p[^>]*>)(.*?Lorem ipsum.*?|.*?Description professionnelle.*?|.*?Résumé.*?)(<\/p>)/is,
-        `$1${this.escapeHtml(data.summary)}$3`
-      );
-
-      // Format 2: Section avec titre "Profil"
-      result = result.replace(
-        /(<div[^>]*class="[^"]*section[^"]*"[^>]*>\s*<[^>]*>Profil<\/[^>]*>\s*<p[^>]*>)(.*?)(<\/p>)/is,
-        `$1${this.escapeHtml(data.summary)}$3`
-      );
-
-      // Format 3: Dans une div de profil
-      result = result.replace(
-        /(<div[^>]*class="[^"]*profil[^"]*"[^>]*>\s*<p[^>]*>)(.*?Lorem ipsum.*?)(<\/p>)/is,
-        `$1${this.escapeHtml(data.summary)}$3`
-      );
-
-      // Format 4: Paragraphe après le header (cv2, cv3)
-      result = result.replace(
-        /(<div[^>]*class="[^"]*job[^"]*"[^>]*>.*?<\/div>\s*<p[^>]*>)(.*?Lorem ipsum.*?)(<\/p>)/is,
-        `$1${this.escapeHtml(data.summary)}$3`
+        /(<p[^>]*>)\s*Professionnel[\s\S]*?enjeux\.\s*(<\/p>)/i,
+        `$1${this.escapeHtml(data.summary)}$2`
       );
     }
 
@@ -258,18 +241,26 @@ class TemplateService {
   }
 
   /**
-   * Détecte le format d'un template (cv1, cv2, etc.)
+   * Détecte le format d'un template (cv1, cv2, cv8, etc.)
    */
   detectTemplateFormat(template) {
+    // cv8: utilise .entry avec grid layout
+    if (template.includes('class="entry"') && template.includes('grid-template-columns')) {
+      return 'format8'; // cv8 style (entry + grid)
+    }
+    
     if (template.includes('class="experience-item"')) {
       return 'format1'; // cv1 style
     }
+    
     if (template.includes('class="item"') && template.includes('class="date"') && template.includes('class="content"')) {
       return 'format2'; // cv2 style
     }
+    
     if (template.includes('POSTE – ENTREPRISE')) {
       return 'format2'; // cv2 style
     }
+    
     return 'format1'; // Par défaut
   }
 
@@ -292,7 +283,19 @@ class TemplateService {
       }
     }
 
-    if (format === 'format2') {
+    if (format === 'format8') {
+      // Format cv8: entry avec grid et date à gauche
+      return `
+        <div class="entry">
+          <div class="date">${this.escapeHtml(dateRange)}</div>
+          <div>
+            <h4>${this.escapeHtml(exp.title || '')}</h4>
+            <p>${this.escapeHtml(exp.company || '')}</p>
+            ${bulletsHtml ? `<ul>${bulletsHtml}</ul>` : ''}
+          </div>
+        </div>
+      `;
+    } else if (format === 'format2') {
       // Format cv2: item avec date et content
       return `
         <div class="item">
@@ -304,7 +307,7 @@ class TemplateService {
         </div>
       `;
     } else {
-      // Format cv1: experience-item
+      // Format cv1/default: experience-item
       return `
         <div class="experience-item">
           <div class="job-title">${this.escapeHtml(exp.title || '')}</div>
@@ -530,20 +533,36 @@ class TemplateService {
       return result;
     }
 
+    // Envelopper les <li> dans <ul class="list"> s'il n'y a pas de wrapper
+    const wrappedSkillsHtml = `<ul class="list">\n${skillsHtml}</ul>`;
+
     // Patterns de recherche pour différentes structures
     const sectionPatterns = [
-      // Pattern 1: Section avec "Compétences" et <ul> (cv1)
-      /(<div[^>]*class="[^"]*section[^"]*"[^>]*>\s*<div[^>]*class="[^"]*section-title[^"]*"[^>]*>Compétences<\/div>\s*<ul>)(.*?)(<\/ul>\s*<\/div>)/is,
-      // Pattern 2: Section avec "Compétences" et <ul> (cv2)
-      /(<h3[^>]*>Compétences<\/h3>\s*<ul>)(.*?)(<\/ul>)/is,
-      // Pattern 3: Section avec h3 "Compétences"
-      /(<h3[^>]*>Compétences<\/h3>\s*)(.*?)(\s*<h3|<div[^>]*class="[^"]*section)/is
+      // Pattern 1: Section avec "Compétences" et <ul> avec classe (cv8, cv9)
+      /(<h3[^>]*>COMPÉTENCES<\/h3>\s*)<ul[^>]*class="list"[^>]*>(.*?)<\/ul>/is,
+      // Pattern 2: Section avec "Compétences" et <ul> (cv1)
+      /(<div[^>]*class="[^"]*section[^"]*"[^>]*>\s*<div[^>]*class="[^"]*section-title[^"]*"[^>]*>Compétences<\/div>\s*<ul[^>]*>)(.*?)(<\/ul>\s*<\/div>)/is,
+      // Pattern 3: Section avec "Compétences" et <ul> (cv2)
+      /(<h3[^>]*>Compétences<\/h3>\s*<ul[^>]*>)(.*?)(<\/ul>)/is,
+      // Pattern 4: Section <h3>COMPÉTENCES</h3> suivi par des <li> personnalisés (cv8, cv9)
+      /(<h3[^>]*>COMPÉTENCES<\/h3>)\s*\n\s*<li>.*?<\/li>[\s\S]*?(?=\n\s*<h3)/is
     ];
 
     let replaced = false;
     for (const pattern of sectionPatterns) {
       if (pattern.test(result)) {
-        result = result.replace(pattern, `$1${skillsHtml.trim()}$3`);
+        if (pattern === sectionPatterns[0]) {
+          // Pattern 1: ul avec classe="list"
+          result = result.replace(pattern, `$1${wrappedSkillsHtml}`);
+        } else if (pattern === sectionPatterns[3]) {
+          // Pattern 4: remplacer tous les <li> jusqu'au prochain <h3>
+          result = result.replace(pattern, (match) => {
+            return match.substring(0, match.indexOf('\n')) + '\n' + wrappedSkillsHtml;
+          });
+        } else {
+          // Patterns 1-3: remplacer dans une <ul> existante
+          result = result.replace(pattern, `$1${skillsHtml.trim()}$3`);
+        }
         replaced = true;
         break;
       }
@@ -719,21 +738,22 @@ class TemplateService {
     const template = await this.loadTemplate(templateId);
     let filledTemplate = this.fillTemplate(template, cvData);
 
-    // Analyse et optimisation si demandé
-    if (optimize || analyze) {
+    // IMPORTANT: L'optimisation automatique est DÉSACTIVÉE pour préserver l'authenticité des templates
+    // Les styles d'origine ne doivent pas être modifiés automatiquement
+    
+    // Analyse seulement (pour diagnostic, sans modification)
+    if (analyze) {
       const report = await templateIntelligence.analyzeTemplate(filledTemplate);
-      
-      if (optimize) {
-        filledTemplate = await templateIntelligence.optimizeTemplate(filledTemplate, report);
-      }
+      return {
+        html: filledTemplate,
+        report: report,
+        reportText: templateIntelligence.generateReportText(report)
+      };
+    }
 
-      if (analyze) {
-        return {
-          html: filledTemplate,
-          report: report,
-          reportText: templateIntelligence.generateReportText(report)
-        };
-      }
+    // L'option 'optimize' est ignorée - pas de modification automatique de styles
+    if (optimize) {
+      console.warn('[TemplateService] ⚠️ Optimisation automatique DÉSACTIVÉE. Les templates sont préservés authentiques.');
     }
 
     return filledTemplate;

@@ -348,7 +348,17 @@ class TemplateIntelligenceService {
 
   /**
    * Optimise le template en corrigeant les problèmes détectés
-   * IMPORTANT: Préserve la structure des colonnes
+   * IMPORTANT: Cette fonction est DÉPRÉCÉE et ne doit plus être utilisée
+   * 
+   * ❌ RAISON: La modification automatique de styles modifie les templates d'origine
+   * Ceci contredit l'objectif d'authentifier et préserver le design original
+   * 
+   * ✅ NOUVELLE APPROCHE: 
+   * - Utiliser analyzeTemplate() pour DIAGNOSTIC SEULEMENT
+   * - Les templates doivent être manuellement révisés si nécessaire
+   * - Pas de modification de style via l'API
+   * 
+   * PRÉSERVE la structure des colonnes (ne change pas le nombre de colonnes)
    */
   async optimizeTemplate(htmlContent, report) {
     let optimizedHtml = htmlContent;

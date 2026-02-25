@@ -10,7 +10,8 @@
     "test-smtp": "node test-smtp.js",
     "debug-template": "node debug-template.js",
     "debug-list": "node debug-template.js --list",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-no-style-injection.js",
+    "test-normalization": "node test-no-style-injection.js"
   },
   "keywords": [],
   "author": "",
