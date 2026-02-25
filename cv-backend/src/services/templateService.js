@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
+const templateIntelligence = require('./templateIntelligenceService');
 
 /**
  * Service pour charger et remplir les templates HTML avec les données CV
@@ -709,10 +710,32 @@ class TemplateService {
 
   /**
    * Génère le HTML final avec les données remplies
+   * @param {string} templateId - ID du template
+   * @param {object} cvData - Données du CV
+   * @param {object} options - Options: { optimize: boolean, analyze: boolean }
    */
-  async generateHTML(templateId, cvData) {
+  async generateHTML(templateId, cvData, options = {}) {
+    const { optimize = false, analyze = false } = options;
     const template = await this.loadTemplate(templateId);
-    const filledTemplate = this.fillTemplate(template, cvData);
+    let filledTemplate = this.fillTemplate(template, cvData);
+
+    // Analyse et optimisation si demandé
+    if (optimize || analyze) {
+      const report = await templateIntelligence.analyzeTemplate(filledTemplate);
+      
+      if (optimize) {
+        filledTemplate = await templateIntelligence.optimizeTemplate(filledTemplate, report);
+      }
+
+      if (analyze) {
+        return {
+          html: filledTemplate,
+          report: report,
+          reportText: templateIntelligence.generateReportText(report)
+        };
+      }
+    }
+
     return filledTemplate;
   }
 }
