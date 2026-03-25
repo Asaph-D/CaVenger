@@ -66,7 +66,7 @@ interface Country {
           </div>
 
           <!-- Country List -->
-          <div class="overflow-y-auto h-96 border border-gray-200 rounded-lg">
+          <div class="overflow-y-auto scrollbar-discrete h-96 border border-gray-200 rounded-lg">
             <div class="divide-y">
               <button
                 *ngFor="let country of filteredCountries()"

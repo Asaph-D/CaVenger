@@ -55,7 +55,7 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <!-- Icons Grid -->
-        <div class="p-6 overflow-y-auto max-h-96">
+        <div class="p-6 overflow-y-auto scrollbar-discrete max-h-96">
           <div class="grid grid-cols-8 gap-3">
             <button 
               *ngFor="let icon of filteredIcons"

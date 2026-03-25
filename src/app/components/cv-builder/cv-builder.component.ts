@@ -199,6 +199,57 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
     .dark-theme .hover\\:bg-gray-50:hover {
       background-color: rgba(30, 41, 55, 0.7);
     }
+
+    /* Header icon buttons */
+    .header-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: transparent;
+      color: #374151;
+      transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+    .header-icon-btn:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+      transform: translateY(-1px);
+    }
+    .header-icon-btn:active {
+      transform: translateY(0);
+    }
+    .header-icon-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+      border-color: rgba(37, 99, 235, 0.35);
+    }
+    .dark-theme .header-icon-btn {
+      border-color: rgba(255, 255, 255, 0.14);
+      color: rgba(229, 231, 235, 0.95);
+    }
+    .dark-theme .header-icon-btn:hover {
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+    .header-icon-btn i {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    @keyframes premium-glow {
+      0%, 100% { box-shadow: 0 0 0 rgba(236, 72, 153, 0); transform: translateY(0) scale(1); }
+      50% { box-shadow: 0 0 18px rgba(236, 72, 153, 0.28); transform: translateY(-1px) scale(1.03); }
+    }
+    .header-icon-btn--premium {
+      border-color: rgba(236, 72, 153, 0.35);
+      color: #db2777;
+      animation: premium-glow 1.6s ease-in-out infinite;
+    }
+    .dark-theme .header-icon-btn--premium {
+      border-color: rgba(236, 72, 153, 0.45);
+      color: #f472b6;
+    }
     /* CV Mobile Container */
     @media (max-width: 768px) {
       /* Dans la section @media (max-width: 768px) */
@@ -239,9 +290,12 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <button (click)="themeService.toggleTheme()" class="flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <i [class]="themeService.isDarkMode() ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-gray-500'" class="mr-2"></i>
-                <span>{{ themeService.isDarkMode() ? 'Mode Clair' : 'Mode Sombre' }}</span>
+              <button
+                (click)="themeService.toggleTheme()"
+                class="header-icon-btn"
+                [title]="themeService.isDarkMode() ? 'Mode clair' : 'Mode sombre'"
+                aria-label="Basculer le thème">
+                <i [class]="themeService.isDarkMode() ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-gray-500'"></i>
               </button>
               <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
               <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
@@ -282,24 +336,24 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
                 <span>Aide</span>
               </button>
               <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-              <button (click)="saveCV()" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105">
-                <i class="fas fa-save mr-2"></i>
-                <span>Sauvegarder</span>
+              <button (click)="saveCV()" class="header-icon-btn" title="Sauvegarder" aria-label="Sauvegarder">
+                <i class="fas fa-save"></i>
               </button>
               <button 
                 (click)="openEmailModal()" 
                 [disabled]="isExporting" 
                 [title]="subscriptionService.isPremium() ? 'Générer et envoyer le CV' : 'Commencer la création de votre CV'"
-                class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50">
-                <i [class]="isExporting ? 'fas fa-spinner fa-spin' : (subscriptionService.isPremium() ? 'fas fa-envelope' : 'fas fa-play')" class="mr-2"></i>
-                <span>{{ isExporting ? 'Génération...' : (subscriptionService.isPremium() ? 'Générer & Envoyer' : 'Commencer') }}</span>
+                class="header-icon-btn disabled:opacity-50"
+                aria-label="Commencer / Générer">
+                <i [class]="isExporting ? 'fas fa-spinner fa-spin' : (subscriptionService.isPremium() ? 'fas fa-envelope' : 'fas fa-play')"></i>
               </button>
               <button 
                 *ngIf="!subscriptionService.isPremium()"
                 (click)="goToPayment()"
-                class="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105">
-                <i class="fas fa-crown mr-2"></i>
-                <span>Premium</span>
+                class="header-icon-btn header-icon-btn--premium"
+                title="Passer à Premium"
+                aria-label="Passer à Premium">
+                <i class="fas fa-crown"></i>
               </button>
             </div>
           </div>
@@ -316,11 +370,11 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
               {{ currentCV()?.personalInfo?.firstName }} {{ currentCV()?.personalInfo?.lastName }}
             </h1>
             <div class="flex items-center gap-1">
-              <button (click)="saveCV()" class="p-2 bg-green-600 text-white rounded-lg" title="Sauvegarder">
-                <i class="fas fa-save text-sm"></i>
+              <button (click)="saveCV()" class="header-icon-btn" title="Sauvegarder" aria-label="Sauvegarder">
+                <i class="fas fa-save"></i>
               </button>
-              <button (click)="openEmailModal()" [disabled]="isExporting" [title]="subscriptionService.isPremium() ? 'Générer et Envoyer' : 'Commencer'" class="p-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">
-                <i [class]="isExporting ? 'fas fa-spinner fa-spin text-sm' : (subscriptionService.isPremium() ? 'fas fa-envelope text-sm' : 'fas fa-play text-sm')"></i>
+              <button (click)="openEmailModal()" [disabled]="isExporting" [title]="subscriptionService.isPremium() ? 'Générer et Envoyer' : 'Commencer'" class="header-icon-btn disabled:opacity-50" aria-label="Commencer / Générer">
+                <i [class]="isExporting ? 'fas fa-spinner fa-spin' : (subscriptionService.isPremium() ? 'fas fa-envelope' : 'fas fa-play')"></i>
               </button>
             </div>
           </div>
@@ -329,7 +383,7 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
       <!-- Contenu principal - Desktop -->
       <div class="hidden md:flex h-[calc(100vh-4rem)]">
         <!-- Zone d'édition - visible en mode edit ou en mode preview pour les utilisateurs gratuits -->
-        <div *ngIf="(viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')) && !showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto transition-all duration-300 panel relative">
+        <div *ngIf="(viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')) && !showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto scrollbar-discrete transition-all duration-300 panel relative">
           <!-- Contenu de l'éditeur en arrière-plan -->
           <app-section-editor [class.opacity-70]="!subscriptionService.isPremium()" [class.pointer-events-none]="!subscriptionService.isPremium()"></app-section-editor>
           <!-- Overlay Premium pour les utilisateurs gratuits -->
@@ -352,18 +406,18 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
             </div>
           </div>
         </div>
-        <div *ngIf="viewMode === 'edit' && showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto transition-all duration-300 panel">
+        <div *ngIf="viewMode === 'edit' && showTemplatePicker" class="w-1/3 bg-white dark:bg-gray-800 border-r border-gray-600 overflow-y-auto scrollbar-discrete transition-all duration-300 panel">
           <app-template-picker (templateSelected)="onTemplateSelectedFromPicker($event)"></app-template-picker>
         </div>
-        <div class="flex-1 bg-gray-100 dark:bg-gray-900 overflow-y-auto p-8 transition-all duration-300 panel" [class.w-full]="viewMode === 'preview' && subscriptionService.isPremium()" [ngClass]="{'w-2/3': viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')}">
+        <div class="flex-1 bg-gray-100 dark:bg-gray-900 overflow-y-auto scrollbar-discrete p-8 transition-all duration-300 panel" [class.w-full]="viewMode === 'preview' && subscriptionService.isPremium()" [ngClass]="{'w-2/3': viewMode === 'edit' || (!subscriptionService.isPremium() && viewMode === 'preview')}">
           <div class="max-w-4xl mx-auto">
             <app-cv-preview></app-cv-preview>
           </div>
         </div>
-        <div *ngIf="showStyleEditor && subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto animate-slide-in-right panel">
+        <div *ngIf="showStyleEditor && subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto scrollbar-discrete animate-slide-in-right panel">
           <app-style-editor></app-style-editor>
         </div>
-        <div *ngIf="showStyleEditor && !subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto animate-slide-in-right panel p-6">
+        <div *ngIf="showStyleEditor && !subscriptionService.hasFeature('canCustomizeStyles')" class="w-1/4 bg-white dark:bg-gray-800 border-l border-gray-600 overflow-y-auto scrollbar-discrete animate-slide-in-right panel p-6">
           <div class="text-center py-12">
             <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
             <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Fonctionnalité Premium</h3>
@@ -382,7 +436,7 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
       <!-- Contenu principal - Mobile -->
       <div class="md:hidden mobile-view-container" [ngSwitch]="mobileView">
         <!-- Zone d'édition - visible en mode edit ou en mode preview pour les utilisateurs gratuits -->
-        <div *ngSwitchCase="'edit'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800 relative">
+        <div *ngSwitchCase="'edit'" class="h-[calc(100vh-7rem)] overflow-y-auto scrollbar-discrete bg-white dark:bg-gray-800 relative">
           <div *ngIf="!showTemplatePicker">
             <!-- Contenu de l'éditeur en arrière-plan -->
             <app-section-editor [class.opacity-70]="!subscriptionService.isPremium()" [class.pointer-events-none]="!subscriptionService.isPremium()"></app-section-editor>
@@ -416,12 +470,12 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
             <app-template-picker (templateSelected)="onTemplateSelectedFromPicker($event)"></app-template-picker>
           </div>
         </div>
-        <div *ngSwitchCase="'preview'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-gray-100 dark:bg-gray-900 p-2">
+        <div *ngSwitchCase="'preview'" class="h-[calc(100vh-7rem)] overflow-y-auto scrollbar-discrete bg-gray-100 dark:bg-gray-900 p-2">
           <div class="cv-mobile-container">
             <app-cv-preview></app-cv-preview>
           </div>
         </div>
-        <div *ngSwitchCase="'style'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800">
+        <div *ngSwitchCase="'style'" class="h-[calc(100vh-7rem)] overflow-y-auto scrollbar-discrete bg-white dark:bg-gray-800">
           <div *ngIf="subscriptionService.hasFeature('canCustomizeStyles')">
             <app-style-editor></app-style-editor>
           </div>
@@ -439,7 +493,7 @@ import { TemplatePickerComponent } from './components/template-picker/template-p
             </button>
           </div>
         </div>
-        <div *ngSwitchCase="'more'" class="h-[calc(100vh-7rem)] overflow-y-auto bg-white dark:bg-gray-800 p-4">
+        <div *ngSwitchCase="'more'" class="h-[calc(100vh-7rem)] overflow-y-auto scrollbar-discrete bg-white dark:bg-gray-800 p-4">
           <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Actions</h2>
           <div class="space-y-2">
             <button (click)="themeService.toggleTheme()" class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">

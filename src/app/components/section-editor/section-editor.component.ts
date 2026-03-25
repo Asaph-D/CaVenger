@@ -32,7 +32,7 @@ import { canAddItem, canRemoveItem, getMaxItems, getMinItems } from '../../confi
       </div>
 
       <!-- Section Content -->
-      <div class="flex-1 overflow-y-auto p-4">
+      <div class="flex-1 overflow-y-auto scrollbar-discrete p-4">
         <div [ngSwitch]="selectedSectionType()">
           <app-personal-info-editor
             *ngSwitchCase="'profile'"

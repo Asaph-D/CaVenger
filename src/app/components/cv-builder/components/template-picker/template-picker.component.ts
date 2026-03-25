@@ -34,7 +34,7 @@ import { SubscriptionService } from '../../../../services/subscription.service';
         <p class="text-xs text-gray-400 mt-2">Vérifiez que le backend est démarré sur http://localhost:3000</p>
       </div>
 
-      <div *ngIf="!isLoading() && templates().length > 0" class="grid grid-cols-2 gap-3 max-h-[500px] overflow-y-auto">
+      <div *ngIf="!isLoading() && templates().length > 0" class="grid grid-cols-2 gap-3 max-h-[500px] overflow-y-auto scrollbar-discrete">
         <button
           *ngFor="let template of templates()"
           (click)="selectTemplate(template)"

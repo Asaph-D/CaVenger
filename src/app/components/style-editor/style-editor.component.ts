@@ -167,7 +167,7 @@ import { CvApiService, CVTemplate } from '../../services/cv-api.service';
           <i class="fas fa-file-code mr-2 text-indigo-500"></i>
           Structures de CV
         </h4>
-        <div class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+        <div class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto scrollbar-discrete">
           <div *ngFor="let template of externalTemplates" 
                (click)="selectExternalTemplate(template.id)" 
                class="border-2 rounded-lg p-3 cursor-pointer transition-all hover:shadow-md"

@@ -105,7 +105,7 @@ import { PersonalInfo, ContactInfo, ExperienceItem, EducationItem, Skill, Langua
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex-1 overflow-y-auto scrollbar-discrete p-6">
           <!-- Step 1: Informations Personnelles -->
           <div *ngIf="currentStep() === 0" class="space-y-4">
             <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Informations Personnelles</h3>

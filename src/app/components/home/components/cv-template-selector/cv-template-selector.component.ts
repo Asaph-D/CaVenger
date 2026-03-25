@@ -24,7 +24,7 @@ import { SubscriptionService } from '../../../../services/subscription.service';
       </button>
 
       <!-- Menu déroulant -->
-      <div *ngIf="isOpen" class="absolute top-14 right-0 w-[380px] h-screen dark:bg-slate-900 bg-white dark:backdrop-blur-xl backdrop-blur-lg rounded-xl shadow-2xl dark:border-slate-700 border-gray-200 overflow-scroll animate-fade-in">
+      <div *ngIf="isOpen" class="absolute top-14 right-0 w-[380px] h-screen dark:bg-slate-900 bg-white dark:backdrop-blur-xl backdrop-blur-lg rounded-xl shadow-2xl dark:border-slate-700 border-gray-200 overflow-scroll scrollbar-discrete animate-fade-in">
         <div class="p-3 dark:border-slate-700 border-gray-200 dark:bg-slate-800/50 bg-gray-50/50">
           <h3 class="text-sm font-semibold dark:text-gray-200 text-gray-800 flex items-center gap-2">
             <svg class="w-4 h-4 dark:text-blue-400 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@ import { SubscriptionService } from '../../../../services/subscription.service';
           <h4 class="text-[10px] font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wide">Épurés</h4>
         </div>
 
-        <div class="px-3 pb-3 grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+        <div class="px-3 pb-3 grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto scrollbar-discrete">
           <button
             *ngFor="let template of templates().slice(6)"
             (click)="selectTemplate(template)"
@@ -136,29 +136,6 @@ import { SubscriptionService } from '../../../../services/subscription.service';
     }
     .group:hover {
       transform: translateY(-2px);
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f3f4f6;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-track {
-      background: #1e293b;
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #9ca3af;
-      border-radius: 3px;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #475569;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #6b7280;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
     }
   `]
 })
